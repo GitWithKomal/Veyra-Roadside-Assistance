@@ -1,13 +1,19 @@
 import dotenv from "dotenv";
+dotenv.config();
+
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import User from "./models/User.js";
 
-dotenv.config();
-
 const seedAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    if (!process.env.MONGODB_URI) {
+      throw new Error("MONGODB_URI is missing from .env");
+    }
+
+    await mongoose.connect(process.env.MONGODB_URI);
+
+    console.log("MongoDB connected for admin seeding");
 
     const existingAdmin = await User.findOne({
       email: "admin@roadsideaaa.com",
@@ -15,6 +21,7 @@ const seedAdmin = async () => {
 
     if (existingAdmin) {
       console.log("Admin already exists");
+      await mongoose.disconnect();
       process.exit(0);
     }
 
@@ -30,13 +37,17 @@ const seedAdmin = async () => {
       password: hashedPassword,
       role: "admin",
       isVerified: true,
+      isActive: true,
     });
 
     console.log("Admin created successfully");
 
+    await mongoose.disconnect();
     process.exit(0);
   } catch (error) {
-    console.error("Admin creation failed:", error);
+    console.error("Admin creation failed:", error.message);
+
+    await mongoose.disconnect();
     process.exit(1);
   }
 };
