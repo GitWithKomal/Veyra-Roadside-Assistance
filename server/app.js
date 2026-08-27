@@ -6,17 +6,17 @@ import vehicleRoutes from "./routes/vehicleRoutes.js";
 import serviceRoutes from "./routes/serviceRoutes.js";
 import mechanicRoutes from "./routes/mechanicRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import serviceRequestRoutes from "./routes/serviceRequestRoutes.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Roadside AAA API is running 🚗🔧",
+    message: "Roadside AAA API is running ????",
   });
 });
 
@@ -26,5 +26,6 @@ app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/mechanics", mechanicRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/service-requests", serviceRequestRoutes);
 
 export default app;
