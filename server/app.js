@@ -16,7 +16,7 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Roadside AAA API is running ????",
+    message: "Veyra API is running",
   });
 });
 

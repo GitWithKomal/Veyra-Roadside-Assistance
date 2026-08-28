@@ -4,14 +4,8 @@ import Service from "../models/Service.js";
 
 export const createServiceRequest = async (req, res) => {
   try {
-    const {
-      mechanicId,
-      serviceId,
-      vehicleId,
-      latitude,
-      longitude,
-      notes,
-    } = req.body;
+    const { mechanicId, serviceId, vehicleId, latitude, longitude, notes } =
+      req.body;
 
     if (
       !mechanicId ||
@@ -21,8 +15,7 @@ export const createServiceRequest = async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message:
-          "Mechanic, service, latitude and longitude are required",
+        message: "Mechanic, service, latitude and longitude are required",
       });
     }
 
@@ -58,20 +51,30 @@ export const createServiceRequest = async (req, res) => {
       vehicle: vehicleId || undefined,
       pickupLocation: {
         type: "Point",
-        coordinates: [
-          Number(longitude),
-          Number(latitude),
-        ],
+        coordinates: [Number(longitude), Number(latitude)],
       },
       estimatedPrice: service.basePrice,
       notes,
     });
 
-    const populatedRequest =
-      await ServiceRequest.findById(request._id)
-        .populate("customer", "name phone")
-        .populate("mechanic")
-        .populate("service", "name basePrice estimatedDuration");
+    const populatedRequest = await ServiceRequest.findById(request._id)
+      .populate("customer", "name phone")
+      .populate("mechanic")
+      .populate("service", "name basePrice estimatedDuration")
+      .populate("vehicle");
+
+    const io = req.app.get("io");
+
+    if (io) {
+      io.to(`user:${mechanic.user}`).emit(
+        "newServiceRequest",
+        populatedRequest,
+      );
+
+      console.log(
+        `New service request sent to mechanic room: user:${mechanic.user}`,
+      );
+    }
 
     res.status(201).json({
       success: true,
@@ -94,10 +97,7 @@ export const getMyServiceRequests = async (req, res) => {
       customer: req.user._id,
     })
       .populate("mechanic")
-      .populate(
-        "service",
-        "name basePrice estimatedDuration"
-      )
+      .populate("service", "name basePrice estimatedDuration")
       .populate("vehicle")
       .sort({ createdAt: -1 });
 
@@ -133,10 +133,7 @@ export const getMechanicServiceRequests = async (req, res) => {
       mechanic: mechanic._id,
     })
       .populate("customer", "name phone")
-      .populate(
-        "service",
-        "name basePrice estimatedDuration"
-      )
+      .populate("service", "name basePrice estimatedDuration")
       .populate("vehicle")
       .sort({ createdAt: -1 });
 
@@ -188,13 +185,25 @@ export const acceptServiceRequest = async (req, res) => {
 
     request.status = "accepted";
 
+    mechanic.isAvailable = false;
+
     await request.save();
+    await mechanic.save();
 
     const populatedRequest = await ServiceRequest.findById(request._id)
       .populate("customer", "name phone")
       .populate("mechanic")
       .populate("service", "name basePrice estimatedDuration")
       .populate("vehicle");
+
+    const io = req.app.get("io");
+
+    if (io) {
+      io.to(`user:${request.customer}`).emit(
+        "serviceRequestUpdated",
+        populatedRequest,
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -210,7 +219,6 @@ export const acceptServiceRequest = async (req, res) => {
     });
   }
 };
-
 
 export const rejectServiceRequest = async (req, res) => {
   try {
@@ -253,6 +261,15 @@ export const rejectServiceRequest = async (req, res) => {
       .populate("mechanic")
       .populate("service", "name basePrice estimatedDuration")
       .populate("vehicle");
+
+    const io = req.app.get("io");
+
+    if (io) {
+      io.to(`user:${request.customer}`).emit(
+        "serviceRequestUpdated",
+        populatedRequest,
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -327,18 +344,27 @@ export const updateServiceRequestStatus = async (req, res) => {
 
     request.status = status;
 
-    await request.save();
+    if (status === "completed") {
+      mechanic.isAvailable = true;
+    }
 
-    const populatedRequest = await ServiceRequest.findById(
-      request._id
-    )
+    await request.save();
+    await mechanic.save();
+
+    const populatedRequest = await ServiceRequest.findById(request._id)
       .populate("customer", "name phone")
       .populate("mechanic")
-      .populate(
-        "service",
-        "name basePrice estimatedDuration"
-      )
+      .populate("service", "name basePrice estimatedDuration")
       .populate("vehicle");
+
+    const io = req.app.get("io");
+
+    if (io) {
+      io.to(`user:${request.customer}`).emit(
+        "serviceRequestUpdated",
+        populatedRequest,
+      );
+    }
 
     res.status(200).json({
       success: true,
@@ -346,14 +372,126 @@ export const updateServiceRequestStatus = async (req, res) => {
       request: populatedRequest,
     });
   } catch (error) {
-    console.error(
-      "Update service request status error:",
-      error
-    );
+    console.error("Update service request status error:", error);
 
     res.status(500).json({
       success: false,
       message: "Server error while updating service request",
+    });
+  }
+};
+export const rateMechanic = async (req, res) => {
+  try {
+    const { rating, review } = req.body;
+
+    // Validate rating
+    const numericRating = Number(rating);
+
+    if (
+      !Number.isInteger(numericRating) ||
+      numericRating < 1 ||
+      numericRating > 5
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating must be a whole number between 1 and 5",
+      });
+    }
+
+    // Find request belonging to logged-in customer
+    const request = await ServiceRequest.findOne({
+      _id: req.params.id,
+      customer: req.user._id,
+    });
+
+    if (!request) {
+      return res.status(404).json({
+        success: false,
+        message: "Service request not found",
+      });
+    }
+
+    // Rating allowed only after completion
+    if (request.status !== "completed") {
+      return res.status(400).json({
+        success: false,
+        message: "You can rate the mechanic only after service is completed",
+      });
+    }
+
+    // Prevent multiple ratings
+    if (request.rating) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already rated this service",
+      });
+    }
+
+    // Save rating on service request
+    request.rating = numericRating;
+    request.review = review?.trim() || "";
+
+    await request.save();
+
+    // --------------------------------------------------
+    // UPDATE MECHANIC AVERAGE RATING
+    // --------------------------------------------------
+
+    const mechanicId = request.mechanic;
+
+    // Get all completed requests for this mechanic
+    // that have been rated
+    const ratedRequests = await ServiceRequest.find({
+      mechanic: mechanicId,
+      status: "completed",
+      rating: { $exists: true, $ne: null },
+    }).select("rating");
+
+    const totalRatings = ratedRequests.length;
+
+    const totalRating = ratedRequests.reduce(
+      (sum, item) => sum + item.rating,
+      0,
+    );
+
+    const averageRating =
+      totalRatings > 0 ? Number((totalRating / totalRatings).toFixed(1)) : 0;
+
+    // Update mechanic profile
+    const mechanic = await Mechanic.findByIdAndUpdate(
+      mechanicId,
+      {
+        rating: averageRating,
+      },
+      {
+        new: true,
+      },
+    );
+
+    if (!mechanic) {
+      return res.status(404).json({
+        success: false,
+        message: "Mechanic profile not found",
+      });
+    }
+
+    // --------------------------------------------------
+    // RESPONSE
+    // --------------------------------------------------
+
+    res.status(200).json({
+      success: true,
+      message: "Thank you! Your rating has been submitted.",
+      rating: numericRating,
+      mechanicRating: mechanic.rating,
+      request,
+    });
+  } catch (error) {
+    console.error("Rate mechanic error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error while rating mechanic",
     });
   }
 };

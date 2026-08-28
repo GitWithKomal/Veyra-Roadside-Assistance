@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { socket } from "../services/socket";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -8,6 +9,7 @@ const MechanicDashboard = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [requestFilter, setRequestFilter] = useState("all");
 
   const fetchRequests = async () => {
     try {
@@ -42,8 +44,74 @@ const MechanicDashboard = () => {
   };
 
   useEffect(() => {
-    fetchRequests();
-  }, []);
+  fetchRequests();
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!user?.id) {
+    console.log("❌ No logged-in mechanic user for socket");
+    return;
+  }
+
+  if (!socket.connected) {
+    socket.connect();
+  }
+
+  const handleConnect = () => {
+    console.log("🟢 Mechanic socket connected:", socket.id);
+    console.log("Joining mechanic room:", `user:${user.id}`);
+
+    socket.emit("join", user.id);
+  };
+
+  const handleNewRequest = (request) => {
+    console.log("🆕 Mechanic received new service request:", request);
+
+    setRequests((prevRequests) => {
+      // Prevent duplicate requests
+      const alreadyExists = prevRequests.some(
+        (existingRequest) => existingRequest._id === request._id
+      );
+
+      if (alreadyExists) {
+        return prevRequests;
+      }
+
+      // Add newest request at the top
+      return [request, ...prevRequests];
+    });
+  };
+
+  const handleRequestUpdate = (updatedRequest) => {
+    console.log(
+      "🔄 Mechanic received service request update:",
+      updatedRequest
+    );
+
+    setRequests((prevRequests) =>
+      prevRequests.map((request) =>
+        request._id === updatedRequest._id
+          ? updatedRequest
+          : request
+      )
+    );
+  };
+
+  socket.on("connect", handleConnect);
+  socket.on("newServiceRequest", handleNewRequest);
+  socket.on("serviceRequestUpdated", handleRequestUpdate);
+
+  // If socket is already connected
+  if (socket.connected) {
+    handleConnect();
+  }
+
+  return () => {
+    socket.off("connect", handleConnect);
+    socket.off("newServiceRequest", handleNewRequest);
+    socket.off("serviceRequestUpdated", handleRequestUpdate);
+  };
+}, []);
 
   const updateRequestStatus = async (requestId, action, status = null) => {
     try {
@@ -73,7 +141,7 @@ const MechanicDashboard = () => {
       }
 
       const response = await fetch(url, {
-        method: action === "status" ? "PATCH" : "PATCH",
+        method: "PATCH",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -135,6 +203,59 @@ const MechanicDashboard = () => {
       .replaceAll("_", " ")
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
+
+  const statusFilters = [
+    {
+      value: "all",
+      label: "All",
+      count: requests.length,
+    },
+    {
+      value: "pending",
+      label: "Pending",
+      count: requests.filter((request) => request.status === "pending").length,
+    },
+    {
+      value: "accepted",
+      label: "Accepted",
+      count: requests.filter((request) => request.status === "accepted").length,
+    },
+    {
+      value: "on_the_way",
+      label: "On The Way",
+      count: requests.filter((request) => request.status === "on_the_way").length,
+    },
+    {
+      value: "arrived",
+      label: "Arrived",
+      count: requests.filter((request) => request.status === "arrived").length,
+    },
+    {
+      value: "in_progress",
+      label: "In Progress",
+      count: requests.filter((request) => request.status === "in_progress").length,
+    },
+    {
+      value: "completed",
+      label: "Completed",
+      count: requests.filter((request) => request.status === "completed").length,
+    },
+    {
+      value: "rejected",
+      label: "Rejected",
+      count: requests.filter((request) => request.status === "rejected").length,
+    },
+    {
+      value: "cancelled",
+      label: "Cancelled",
+      count: requests.filter((request) => request.status === "cancelled").length,
+    },
+  ];
+
+  const filteredRequests =
+    requestFilter === "all"
+      ? requests
+      : requests.filter((request) => request.status === requestFilter);
 
   const renderActions = (request) => {
     const { _id, status } = request;
@@ -232,208 +353,350 @@ const MechanicDashboard = () => {
     return null;
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Mechanic Dashboard
-            </h1>
+ return (
+  <div className="min-h-screen bg-[var(--veyra-bg)] text-[var(--veyra-text)]">
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
 
-            <p className="text-gray-500 mt-1">
-              Manage your roadside assistance requests
-            </p>
+      {/* HEADER */}
+      <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--veyra-muted)]">
+            Roadside assistance
+          </p>
+
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-[var(--veyra-text)] sm:text-3xl">
+            Mechanic Dashboard
+          </h1>
+
+          <p className="mt-1 text-sm text-[var(--veyra-text-secondary)]">
+            Manage and respond to roadside assistance requests.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={fetchRequests}
+          disabled={loading}
+          className="flex h-11 w-full items-center justify-center rounded-xl bg-[var(--veyra-lime)] px-5 text-sm font-black text-[var(--veyra-ink)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        >
+          {loading ? "Refreshing..." : "Refresh Requests"}
+        </button>
+      </div>
+
+      {/* SUCCESS MESSAGE */}
+      {successMessage && (
+        <div className="mb-5 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-semibold text-green-700 dark:border-green-900/40 dark:bg-green-950/20 dark:text-green-400">
+          {successMessage}
+        </div>
+      )}
+
+      {/* ERROR */}
+      {error && (
+        <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-400">
+          {error}
+        </div>
+      )}
+
+      {/* FILTERS */}
+{!loading && !error && requests.length > 0 && (
+  <div className="mb-7 rounded-[24px] border border-[var(--veyra-border)] bg-[var(--veyra-surface)] p-4 shadow-[var(--veyra-shadow-soft)] sm:p-5">
+    <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h2 className="text-sm font-black uppercase tracking-wider text-[var(--veyra-text)]">
+          Service Requests
+        </h2>
+
+        <p className="mt-1 text-xs text-[var(--veyra-muted)]">
+          Filter requests by their current status.
+        </p>
+      </div>
+
+      <span className="text-xs font-semibold text-[var(--veyra-muted)]">
+        {filteredRequests.length}{" "}
+        {filteredRequests.length === 1 ? "request" : "requests"}
+      </span>
+    </div>
+
+    <div className="overflow-x-auto">
+      <div className="flex min-w-max gap-2 pb-1">
+        {statusFilters.map((filter) => (
+          <button
+            key={filter.value}
+            type="button"
+            onClick={() => setRequestFilter(filter.value)}
+            className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition ${
+              requestFilter === filter.value
+                ? "bg-[var(--veyra-lime)] text-[var(--veyra-ink)]"
+                : "border border-[var(--veyra-border)] bg-[var(--veyra-surface)] text-[var(--veyra-text-secondary)] hover:bg-[var(--veyra-surface-soft)]"
+            }`}
+          >
+            <span>{filter.label}</span>
+
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[10px] ${
+                requestFilter === filter.value
+                  ? "bg-black/10"
+                  : "bg-[var(--veyra-surface-soft)] text-[var(--veyra-muted)]"
+              }`}
+            >
+              {filter.count}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
+      {/* LOADING */}
+      {loading ? (
+        <div className="rounded-[28px] border border-[var(--veyra-border)] bg-[var(--veyra-surface)] p-10 text-center shadow-[var(--veyra-shadow-soft)]">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-[var(--veyra-border)] border-t-[var(--veyra-lime)]" />
+
+          <p className="mt-4 text-sm font-semibold text-[var(--veyra-text-secondary)]">
+            Loading service requests...
+          </p>
+        </div>
+      ) : requests.length === 0 ? (
+
+        /* NO REQUESTS AT ALL */
+        <div className="rounded-[28px] border border-dashed border-[var(--veyra-border-strong)] bg-[var(--veyra-surface)] p-10 text-center shadow-[var(--veyra-shadow-soft)]">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--veyra-lime-soft)]">
+            <span className="text-2xl">🔧</span>
           </div>
+
+          <h2 className="mt-4 text-xl font-black text-[var(--veyra-text)]">
+            No service requests
+          </h2>
+
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--veyra-text-secondary)]">
+            New roadside assistance requests from customers will appear here.
+          </p>
+        </div>
+
+      ) : filteredRequests.length === 0 ? (
+
+        /* NO FILTERED REQUESTS */
+        <div className="rounded-[28px] border border-dashed border-[var(--veyra-border-strong)] bg-[var(--veyra-surface)] p-10 text-center shadow-[var(--veyra-shadow-soft)]">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--veyra-surface-soft)]">
+            <span className="text-2xl">📋</span>
+          </div>
+
+          <h2 className="mt-4 text-lg font-black text-[var(--veyra-text)]">
+            No {requestFilter} requests
+          </h2>
+
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--veyra-text-secondary)]">
+            There are currently no requests in this category.
+          </p>
 
           <button
             type="button"
-            onClick={fetchRequests}
-            className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition"
+            onClick={() => setRequestFilter("all")}
+            className="mt-5 rounded-xl bg-[var(--veyra-lime)] px-4 py-2.5 text-xs font-black text-[var(--veyra-ink)] transition hover:opacity-90"
           >
-            Refresh Requests
+            View All Requests
           </button>
         </div>
 
-        {/* Success */}
-        {successMessage && (
-          <div className="mb-5 bg-green-50 border border-green-200 text-green-700 rounded-lg p-4">
-            {successMessage}
-          </div>
-        )}
+      ) : (
 
-        {/* Error */}
-        {error && (
-          <div className="mb-5 bg-red-50 border border-red-200 text-red-700 rounded-lg p-4">
-            {error}
-          </div>
-        )}
+        /* REQUEST LIST */
+        <div className="space-y-5">
 
-        {/* Loading */}
-        {loading ? (
-          <div className="bg-white rounded-xl shadow p-10 text-center">
-            <p className="text-gray-500">Loading service requests...</p>
-          </div>
-        ) : requests.length === 0 ? (
-          <div className="bg-white rounded-xl shadow p-10 text-center">
-            <h2 className="text-xl font-semibold text-gray-800">
-              No service requests
-            </h2>
+          {filteredRequests.map((request) => (
+            <div
+              key={request._id}
+              className="overflow-hidden rounded-[28px] border border-[var(--veyra-border)] bg-[var(--veyra-surface)] shadow-[var(--veyra-shadow-soft)] transition hover:border-[var(--veyra-border-strong)]"
+            >
 
-            <p className="text-gray-500 mt-2">
-              New roadside assistance requests will appear here.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {requests.map((request) => (
-              <div
-                key={request._id}
-                className="bg-white rounded-xl shadow-sm border p-6"
-              >
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">
+              {/* REQUEST HEADER */}
+              <div className="border-b border-[var(--veyra-border)] p-5 sm:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--veyra-muted)]">
+                      Service Request
+                    </p>
+
+                    <h2 className="mt-1 text-xl font-black text-[var(--veyra-text)]">
                       {request.service?.name || "Roadside Assistance"}
                     </h2>
 
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="mt-1 break-all text-xs text-[var(--veyra-muted)]">
                       Request ID: {request._id}
                     </p>
                   </div>
 
                   <span
-                    className={`inline-flex w-fit px-3 py-1 rounded-full text-sm font-medium ${getStatusStyle(
+                    className={`inline-flex w-fit shrink-0 rounded-full px-3 py-1.5 text-xs font-bold ${getStatusStyle(
                       request.status,
                     )}`}
                   >
                     {formatStatus(request.status)}
                   </span>
+
                 </div>
+              </div>
 
-                {/* Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  {/* Customer */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2">
+              {/* DETAILS */}
+              <div className="p-5 sm:p-6">
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                  {/* CUSTOMER */}
+                  <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
                       Customer
-                    </h3>
-
-                    <p className="text-sm text-gray-700">
-                      <strong>Name:</strong> {request.customer?.name || "N/A"}
                     </p>
 
-                    <p className="text-sm text-gray-700 mt-1">
-                      <strong>Phone:</strong> {request.customer?.phone || "N/A"}
+                    <p className="mt-2 font-black text-[var(--veyra-text)]">
+                      {request.customer?.name || "N/A"}
                     </p>
+
+                    <p className="mt-1 text-sm text-[var(--veyra-text-secondary)]">
+                      {request.customer?.phone || "Phone unavailable"}
+                    </p>
+
+                    {request.customer?.phone && (
+                      <a
+                        href={`tel:${request.customer.phone}`}
+                        className="mt-3 inline-flex rounded-xl bg-[var(--veyra-lime)] px-3 py-2 text-xs font-black text-[var(--veyra-ink)] transition hover:opacity-90"
+                      >
+                        Call Customer
+                      </a>
+                    )}
                   </div>
 
-                  {/* Service */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2">
+                  {/* SERVICE */}
+                  <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
                       Service
-                    </h3>
-
-                    <p className="text-sm text-gray-700">
-                      <strong>Service:</strong> {request.service?.name || "N/A"}
                     </p>
 
-                    <p className="text-sm text-gray-700 mt-1">
-                      <strong>Price:</strong> ₹{request.estimatedPrice || 0}
+                    <p className="mt-2 font-black text-[var(--veyra-text)]">
+                      {request.service?.name || "N/A"}
                     </p>
 
-                    <p className="text-sm text-gray-700 mt-1">
-                      <strong>Duration:</strong>{" "}
-                      {request.service?.estimatedDuration || 0} minutes
-                    </p>
+                    <div className="mt-2 flex flex-wrap gap-4">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
+                          Price
+                        </p>
+
+                        <p className="mt-1 text-sm font-black text-[var(--veyra-text)]">
+                          ₹{request.estimatedPrice || 0}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
+                          Duration
+                        </p>
+
+                        <p className="mt-1 text-sm font-black text-[var(--veyra-text)]">
+                          {request.service?.estimatedDuration || 0} min
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Vehicle */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-800 mb-2">
+                  {/* VEHICLE */}
+                  <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
                       Vehicle
-                    </h3>
+                    </p>
 
                     {request.vehicle ? (
                       <>
-                        <p className="text-sm text-gray-700">
-                          <strong>Vehicle:</strong> {request.vehicle.make}{" "}
-                          {request.vehicle.model}
+                        <p className="mt-2 font-black text-[var(--veyra-text)]">
+                          {request.vehicle.make} {request.vehicle.model}
                         </p>
 
-                        <p className="text-sm text-gray-700 mt-1">
-                          <strong>Registration:</strong>{" "}
+                        <p className="mt-1 text-sm font-semibold text-[var(--veyra-text-secondary)]">
                           {request.vehicle.registrationNumber}
                         </p>
 
-                        <p className="text-sm text-gray-700 mt-1">
-                          <strong>Type:</strong> {request.vehicle.vehicleType}
+                        <p className="mt-1 text-xs capitalize text-[var(--veyra-muted)]">
+                          {request.vehicle.vehicleType} •{" "}
+                          {request.vehicle.fuelType}
+                          {request.vehicle.color
+                            ? ` • ${request.vehicle.color}`
+                            : ""}
                         </p>
-
-                        <p className="text-sm text-gray-700 mt-1">
-                          <strong>Fuel:</strong> {request.vehicle.fuelType}
-                        </p>
-
-                        {request.vehicle.color && (
-                          <p className="text-sm text-gray-700 mt-1">
-                            <strong>Color:</strong> {request.vehicle.color}
-                          </p>
-                        )}
                       </>
                     ) : (
-                      <p className="text-sm text-gray-500">
-                        Vehicle information not available
+                      <p className="mt-2 text-sm text-[var(--veyra-text-secondary)]">
+                        Vehicle information unavailable
                       </p>
                     )}
                   </div>
+
+                  {/* PICKUP */}
+                  <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
+                      Pickup Location
+                    </p>
+
+                    {request.pickupLocation?.coordinates ? (
+                      <>
+                        <p className="mt-2 text-sm text-[var(--veyra-text-secondary)]">
+                          Latitude:{" "}
+                          {request.pickupLocation.coordinates[1]}
+                        </p>
+
+                        <p className="mt-1 text-sm text-[var(--veyra-text-secondary)]">
+                          Longitude:{" "}
+                          {request.pickupLocation.coordinates[0]}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="mt-2 text-sm text-[var(--veyra-muted)]">
+                        Location unavailable
+                      </p>
+                    )}
+                  </div>
+
                 </div>
 
-                {/* Notes */}
+                {/* CUSTOMER NOTES */}
                 {request.notes && (
-                  <div className="mt-4">
-                    <h3 className="font-semibold text-gray-800">
+                  <div className="mt-4 rounded-2xl border border-[var(--veyra-border)] p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
                       Customer Notes
-                    </h3>
+                    </p>
 
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="mt-2 text-sm leading-6 text-[var(--veyra-text-secondary)]">
                       {request.notes}
                     </p>
                   </div>
                 )}
 
-                {/* Pickup */}
-                {request.pickupLocation?.coordinates && (
-                  <div className="mt-4 bg-purple-50 rounded-lg p-4">
-                    <h3 className="font-semibold text-gray-800">
-                      Pickup Location
-                    </h3>
+                {/* REQUEST TIME */}
+                <div className="mt-5 flex flex-col gap-1 border-t border-[var(--veyra-border)] pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs text-[var(--veyra-muted)]">
+                    Requested on{" "}
+                    {request.createdAt
+                      ? new Date(request.createdAt).toLocaleString()
+                      : "Recently"}
+                  </p>
 
-                    <p className="text-sm text-gray-600 mt-1">
-                      Latitude: {request.pickupLocation.coordinates[1]}
-                    </p>
+                  <p className="text-xs font-semibold text-[var(--veyra-muted)]">
+                    {formatStatus(request.status)}
+                  </p>
+                </div>
 
-                    <p className="text-sm text-gray-600">
-                      Longitude: {request.pickupLocation.coordinates[0]}
-                    </p>
-                  </div>
-                )}
-
-                {/* Time */}
-                <p className="text-xs text-gray-400 mt-5">
-                  Requested on {new Date(request.createdAt).toLocaleString()}
-                </p>
-
-                {/* Actions */}
+                {/* ACTIONS */}
                 {renderActions(request)}
+
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+            </div>
+          ))}
+
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
 };
 
 export default MechanicDashboard;

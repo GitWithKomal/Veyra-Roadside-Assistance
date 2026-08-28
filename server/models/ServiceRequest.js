@@ -54,28 +54,38 @@ const serviceRequestSchema = new mongoose.Schema(
     },
 
     estimatedPrice: {
-      type: Number,
-      min: 0,
-    },
+  type: Number,
+  min: 0,
+},
 
-    notes: {
-      type: String,
-      trim: true,
-      maxlength: 500,
-    },
+notes: {
+  type: String,
+  trim: true,
+  maxlength: 500,
+},
+
+rating: {
+  type: Number,
+  min: 1,
+  max: 5,
+},
+
+review: {
+  type: String,
+  trim: true,
+  maxlength: 500,
+},
   },
+
   {
     timestamps: true,
-  }
+  },
 );
 
 serviceRequestSchema.index({
   pickupLocation: "2dsphere",
 });
 
-const ServiceRequest = mongoose.model(
-  "ServiceRequest",
-  serviceRequestSchema
-);
+const ServiceRequest = mongoose.model("ServiceRequest", serviceRequestSchema);
 
 export default ServiceRequest;

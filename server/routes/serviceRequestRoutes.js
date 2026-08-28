@@ -7,6 +7,7 @@ import {
   acceptServiceRequest,
   rejectServiceRequest,
   updateServiceRequestStatus,
+  rateMechanic,
 } from "../controllers/serviceRequestController.js";
 
 import protect from "../middleware/authMiddleware.js";
@@ -47,6 +48,12 @@ router.patch(
   "/:id/status",
   protect,
   updateServiceRequestStatus
+);
+
+router.patch(
+  "/:id/rate",
+  protect,
+  rateMechanic
 );
 
 export default router;
