@@ -1,46 +1,43 @@
 @import "tailwindcss";
 
-/* =========================================================
-   VEYRA DESIGN SYSTEM
-   ========================================================= */
+
 
 :root {
-  /* Brand */
+  
   --veyra-lime: #c7ff3d;
   --veyra-lime-hover: #b8ef32;
   --veyra-lime-soft: #efffc7;
 
-  /* Core */
+  
   --veyra-ink: #151714;
   --veyra-ink-soft: #242823;
 
-  /* Compatibility with existing components */
   --veyra-forest: #173b2b;
   --veyra-forest-light: #285a42;
 
-  /* Surfaces */
+  
   --veyra-bg: #f5f5f0;
   --veyra-surface: #ffffff;
   --veyra-surface-soft: #fafaf7;
 
-  /* Compatibility with existing components */
+  
   --veyra-card: #ffffff;
 
-  /* Text */
+ 
   --veyra-text: #171916;
   --veyra-text-secondary: #5f665d;
   --veyra-muted: #8a9187;
 
-  /* Borders */
+  
   --veyra-border: #e4e6df;
   --veyra-border-strong: #d5d9cf;
 
-  /* Status */
+ 
   --veyra-success: #35a56a;
   --veyra-warning: #e4a72c;
   --veyra-danger: #e05252;
 
-  /* Effects */
+  
   --veyra-shadow:
     0 12px 40px rgba(20, 25, 20, 0.06);
 
@@ -49,53 +46,43 @@
 }
 
 
-/* =========================================================
-   DARK MODE
-   ========================================================= */
+
 
 .dark {
-  /* Brand */
   --veyra-lime: #c7ff3d;
   --veyra-lime-hover: #d2ff65;
   --veyra-lime-soft: #263016;
 
-  /* Core */
+  
   --veyra-ink: #f4f6ef;
   --veyra-ink-soft: #dfe4da;
 
-  /*
-     IMPORTANT:
-     Keep forest dark in dark mode.
 
-     Your App.jsx uses --veyra-forest
-     for the large customer hero section.
-  */
   --veyra-forest: #1b261f;
   --veyra-forest-light: #26382c;
 
-  /* Surfaces */
+  
   --veyra-bg: #0d100e;
   --veyra-surface: #151915;
   --veyra-surface-soft: #191e19;
 
-  /* Compatibility */
+ 
   --veyra-card: #151915;
 
-  /* Text */
+ 
   --veyra-text: #f2f4ed;
   --veyra-text-secondary: #b0b7ad;
   --veyra-muted: #7f887e;
 
-  /* Borders */
+ 
   --veyra-border: #292f29;
   --veyra-border-strong: #353d35;
 
-  /* Status */
   --veyra-success: #58c887;
   --veyra-warning: #eab34a;
   --veyra-danger: #ef6969;
 
-  /* Effects */
+  
   --veyra-shadow:
     0 16px 50px rgba(0, 0, 0, 0.25);
 
@@ -104,9 +91,7 @@
 }
 
 
-/* =========================================================
-   GLOBAL
-   ========================================================= */
+
 
 * {
   box-sizing: border-box;
@@ -157,9 +142,6 @@ button {
 }
 
 
-/* =========================================================
-   SCROLLBAR
-   ========================================================= */
 
 ::-webkit-scrollbar {
   width: 8px;
@@ -176,4 +158,15 @@ button {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--veyra-muted);
+}
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

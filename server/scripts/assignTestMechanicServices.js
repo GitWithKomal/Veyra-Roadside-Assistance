@@ -19,10 +19,10 @@ const assignServices = async () => {
     }
 
     mechanic.servicesOffered = [
-      "6a8716b3003edc4992a1e2aa", // Breakdown Repair
-      "6a8717d9003edc4992a1e2ac", // Battery Jump-Start
-      "6a871800003edc4992a1e2ad", // Flat Tire Repair
-      "6a871821003edc4992a1e2ae", // Fuel Delivery
+      "6a8716b3003edc4992a1e2aa",
+      "6a8717d9003edc4992a1e2ac", 
+      "6a871800003edc4992a1e2ad", 
+      "6a871821003edc4992a1e2ae", 
     ];
 
     mechanic.pricing = [

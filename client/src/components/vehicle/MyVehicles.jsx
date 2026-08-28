@@ -86,7 +86,6 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
 
   return (
     <section className="mt-8">
-      {/* HEADER */}
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--veyra-muted)]">
@@ -112,14 +111,12 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
         </button>
       </div>
 
-      {/* ERROR */}
       {error && (
         <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-400">
           {error}
         </div>
       )}
 
-      {/* LOADING */}
       {loading ? (
         <div className="rounded-[24px] border border-[var(--veyra-border)] bg-[var(--veyra-surface)] p-8 text-center">
           <p className="text-sm text-[var(--veyra-muted)]">
@@ -127,7 +124,6 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
           </p>
         </div>
       ) : vehicles.length === 0 ? (
-        /* EMPTY STATE */
         <div className="rounded-[28px] border border-dashed border-[var(--veyra-border-strong)] bg-[var(--veyra-surface)] p-10 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--veyra-lime-soft)]">
             <Car size={25} />
@@ -149,14 +145,12 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
           </button>
         </div>
       ) : (
-        /* VEHICLE CARDS */
         <div className="grid gap-4 md:grid-cols-2">
           {vehicles.map((vehicle) => (
             <div
               key={vehicle._id}
               className="group rounded-[26px] border border-[var(--veyra-border)] bg-[var(--veyra-surface)] p-5 shadow-[var(--veyra-shadow-soft)] transition duration-300 hover:-translate-y-1 hover:shadow-[var(--veyra-shadow)]"
             >
-              {/* TOP */}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--veyra-lime-soft)]">
@@ -179,7 +173,6 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
                 </span>
               </div>
 
-              {/* DETAILS */}
               <div className="mt-5 grid grid-cols-3 gap-2">
                 <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-3">
                   <CalendarDays
@@ -226,11 +219,9 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
         </div>
       )}
 
-      {/* ADD VEHICLE MODAL */}
       {showForm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[28px] border border-[var(--veyra-border)] bg-[var(--veyra-surface)] p-6 shadow-2xl sm:p-8">
-            {/* MODAL HEADER */}
             <div className="mb-6 flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--veyra-muted)]">
@@ -250,7 +241,6 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* REGISTRATION */}
               <div>
                 <label className="mb-2 block text-sm font-bold">
                   Registration number
@@ -266,7 +256,6 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
                 />
               </div>
 
-              {/* MAKE + MODEL */}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="mb-2 block text-sm font-bold">Make</label>
@@ -295,7 +284,6 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
                 </div>
               </div>
 
-              {/* YEAR */}
               <div>
                 <label className="mb-2 block text-sm font-bold">Year</label>
 
@@ -312,7 +300,6 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
                 />
               </div>
 
-              {/* VEHICLE TYPE */}
               <div>
                 <label className="mb-2 block text-sm font-bold">
                   Vehicle type
@@ -332,7 +319,6 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
                 </select>
               </div>
 
-              {/* FUEL */}
               <div>
                 <label className="mb-2 block text-sm font-bold">
                   Fuel type
@@ -353,7 +339,6 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
                 </select>
               </div>
 
-              {/* COLOR */}
               <div>
                 <label className="mb-2 block text-sm font-bold">Color</label>
 
@@ -366,7 +351,6 @@ const MyVehicles = ({ onVehiclesLoaded }) => {
                 />
               </div>
 
-              {/* ACTIONS */}
               <div className="flex gap-3 pt-3">
                 <button
                   type="button"

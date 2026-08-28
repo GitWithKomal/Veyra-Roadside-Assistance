@@ -23,7 +23,7 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
+  const [registrationStep, setRegistrationStep] = useState(null);
 
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem("veyra-theme") === "dark";
@@ -63,17 +63,13 @@ const Login = () => {
     }
   };
 
-  if (showRegister) {
-    return <Register onBackToLogin={() => setShowRegister(false)} />;
+  if (registrationStep === "register") {
+    return <Register onBackToLogin={() => setRegistrationStep(null)} />;
   }
 
   return (
     <div className="min-h-screen bg-[var(--veyra-bg)] text-[var(--veyra-text)] transition-colors duration-300">
-      {/* TOP BAR */}
-
       <header className="flex items-center justify-between px-5 py-5 sm:px-8">
-        {/* LOGO */}
-
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--veyra-lime)]">
             <span className="text-lg font-black text-[var(--veyra-ink)]">
@@ -90,8 +86,6 @@ const Login = () => {
           </div>
         </div>
 
-        {/* THEME */}
-
         <button
           type="button"
           onClick={toggleTheme}
@@ -102,12 +96,8 @@ const Login = () => {
         </button>
       </header>
 
-      {/* MAIN */}
-
       <main className="flex min-h-[calc(100vh-88px)] items-center justify-center px-4 pb-12">
         <div className="grid w-full max-w-5xl overflow-hidden rounded-[32px] border border-[var(--veyra-border)] bg-[var(--veyra-surface)] shadow-[var(--veyra-shadow)] lg:grid-cols-2">
-          {/* LEFT — BRAND PANEL */}
-
           <section className="relative hidden overflow-hidden bg-[var(--veyra-ink)] p-10 text-white lg:flex lg:flex-col lg:justify-between">
             <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[var(--veyra-lime)] opacity-15 blur-3xl" />
 
@@ -165,8 +155,6 @@ const Login = () => {
             </div>
           </section>
 
-          {/* RIGHT — LOGIN */}
-
           <section className="flex items-center p-6 sm:p-10 lg:p-12">
             <div className="mx-auto w-full max-w-md">
               <div className="mb-8">
@@ -190,8 +178,6 @@ const Login = () => {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                {/* EMAIL */}
-
                 <div>
                   <label
                     htmlFor="email"
@@ -212,8 +198,6 @@ const Login = () => {
                     className="w-full rounded-2xl border border-[var(--veyra-border)] bg-[var(--veyra-surface-soft)] px-4 py-3.5 text-sm outline-none transition placeholder:text-[var(--veyra-muted)] focus:border-[var(--veyra-ink)] focus:ring-2 focus:ring-[var(--veyra-lime)]/30 dark:focus:border-[var(--veyra-lime)]"
                   />
                 </div>
-
-                {/* PASSWORD */}
 
                 <div>
                   <div className="mb-2 flex items-center justify-between">
@@ -248,8 +232,6 @@ const Login = () => {
                   </div>
                 </div>
 
-                {/* BUTTON */}
-
                 <button
                   type="submit"
                   disabled={loading}
@@ -276,7 +258,7 @@ const Login = () => {
 
               <button
                 type="button"
-                onClick={() => setShowRegister(true)}
+                onClick={() => setRegistrationStep("register")}
                 className="w-full rounded-2xl border border-[var(--veyra-border)] px-5 py-3.5 text-sm font-bold transition hover:border-[var(--veyra-border-strong)] hover:bg-[var(--veyra-surface-soft)]"
               >
                 Create an account

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import useCustomerSocket from "../hooks/useCustomerSocket";
+import NotificationToast from "../components/notifications/NotificationToast";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -49,6 +50,7 @@ const CustomerRequests = () => {
   const [ratingLoading, setRatingLoading] = useState(false);
   const [ratingMessage, setRatingMessage] = useState("");
   const [requestFilter, setRequestFilter] = useState("all");
+  const [notification, setNotification] = useState(null);
 
   const handleRequestUpdate = useCallback((updatedRequest) => {
     console.log("CustomerRequests received real-time update:", updatedRequest);
@@ -58,9 +60,18 @@ const CustomerRequests = () => {
         request._id === updatedRequest._id ? updatedRequest : request,
       ),
     );
+
+    setNotification({
+      status: updatedRequest.status,
+      requestId: updatedRequest._id,
+    });
+
+    setTimeout(() => {
+      setNotification(null);
+    }, 5000);
   }, []);
 
-  useCustomerSocket(handleRequestUpdate);
+  useCustomerSocket(handleRequestUpdate, setNotification);
 
   const submitRating = async () => {
     try {
@@ -99,10 +110,8 @@ const CustomerRequests = () => {
 
       setRatingMessage("⭐ Thank you! Your rating has been submitted.");
 
-      // Refresh requests
       await fetchRequests(true);
 
-      // Close rating section after short delay
       setTimeout(() => {
         setRatingRequest(null);
         setSelectedRating(0);
@@ -165,8 +174,8 @@ const CustomerRequests = () => {
   };
 
   useEffect(() => {
-  fetchRequests(false);
-}, []);
+    fetchRequests(false);
+  }, []);
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -286,57 +295,57 @@ const CustomerRequests = () => {
   };
 
   const requestFilters = [
-  {
-    value: "all",
-    label: "All",
-    count: requests.length,
-  },
-  {
-    value: "pending",
-    label: "Pending",
-    count: requests.filter((r) => r.status === "pending").length,
-  },
-  {
-    value: "accepted",
-    label: "Accepted",
-    count: requests.filter((r) => r.status === "accepted").length,
-  },
-  {
-    value: "on_the_way",
-    label: "On the Way",
-    count: requests.filter((r) => r.status === "on_the_way").length,
-  },
-  {
-    value: "arrived",
-    label: "Arrived",
-    count: requests.filter((r) => r.status === "arrived").length,
-  },
-  {
-    value: "in_progress",
-    label: "In Progress",
-    count: requests.filter((r) => r.status === "in_progress").length,
-  },
-  {
-    value: "completed",
-    label: "Completed",
-    count: requests.filter((r) => r.status === "completed").length,
-  },
-  {
-    value: "rejected",
-    label: "Rejected",
-    count: requests.filter((r) => r.status === "rejected").length,
-  },
-  {
-    value: "cancelled",
-    label: "Cancelled",
-    count: requests.filter((r) => r.status === "cancelled").length,
-  },
-];
+    {
+      value: "all",
+      label: "All",
+      count: requests.length,
+    },
+    {
+      value: "pending",
+      label: "Pending",
+      count: requests.filter((r) => r.status === "pending").length,
+    },
+    {
+      value: "accepted",
+      label: "Accepted",
+      count: requests.filter((r) => r.status === "accepted").length,
+    },
+    {
+      value: "on_the_way",
+      label: "On the Way",
+      count: requests.filter((r) => r.status === "on_the_way").length,
+    },
+    {
+      value: "arrived",
+      label: "Arrived",
+      count: requests.filter((r) => r.status === "arrived").length,
+    },
+    {
+      value: "in_progress",
+      label: "In Progress",
+      count: requests.filter((r) => r.status === "in_progress").length,
+    },
+    {
+      value: "completed",
+      label: "Completed",
+      count: requests.filter((r) => r.status === "completed").length,
+    },
+    {
+      value: "rejected",
+      label: "Rejected",
+      count: requests.filter((r) => r.status === "rejected").length,
+    },
+    {
+      value: "cancelled",
+      label: "Cancelled",
+      count: requests.filter((r) => r.status === "cancelled").length,
+    },
+  ];
 
-const filteredRequests =
-  requestFilter === "all"
-    ? requests
-    : requests.filter((request) => request.status === requestFilter);
+  const filteredRequests =
+    requestFilter === "all"
+      ? requests
+      : requests.filter((request) => request.status === requestFilter);
 
   const renderProgress = (request) => {
     const currentIndex = steps.indexOf(request.status);
@@ -411,7 +420,6 @@ const filteredRequests =
             : "border-[var(--veyra-border)] opacity-90"
         }`}
       >
-        {/* TOP STATUS AREA */}
         <div className="border-b border-[var(--veyra-border)] p-5 sm:p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
@@ -443,7 +451,6 @@ const filteredRequests =
             </span>
           </div>
 
-          {/* CURRENT STATUS MESSAGE */}
           <div className="mt-5">
             <h4 className="text-lg font-black text-[var(--veyra-text)]">
               {statusInfo.title}
@@ -454,16 +461,13 @@ const filteredRequests =
             </p>
           </div>
 
-          {/* ACTIVE PROGRESS */}
           {active &&
             !["rejected", "cancelled"].includes(request.status) &&
             renderProgress(request)}
         </div>
 
-        {/* MAIN DETAILS */}
         <div className="p-5 sm:p-6">
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* MECHANIC */}
             <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
               <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
                 Mechanic
@@ -495,7 +499,6 @@ const filteredRequests =
               ) : null}
             </div>
 
-            {/* VEHICLE */}
             <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
               <div className="flex items-center gap-2">
                 <Car size={15} className="text-[var(--veyra-muted)]" />
@@ -527,7 +530,6 @@ const filteredRequests =
               )}
             </div>
 
-            {/* PRICE */}
             <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
               <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
                 Estimated Price
@@ -538,7 +540,6 @@ const filteredRequests =
               </p>
             </div>
 
-            {/* DURATION */}
             <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
               <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
                 Estimated Duration
@@ -552,7 +553,6 @@ const filteredRequests =
             </div>
           </div>
 
-          {/* NOTES */}
           {request.notes && (
             <div className="mt-4 rounded-2xl border border-[var(--veyra-border)] p-4">
               <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
@@ -565,7 +565,6 @@ const filteredRequests =
             </div>
           )}
 
-          {/* REJECTED MESSAGE */}
           {request.status === "rejected" && (
             <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 dark:border-red-900/40 dark:bg-red-950/20">
               <p className="text-sm font-bold text-red-700 dark:text-red-400">
@@ -578,7 +577,6 @@ const filteredRequests =
             </div>
           )}
 
-          {/* COMPLETED */}
           {request.status === "completed" && (
             <div className="mt-4 flex items-center gap-3 rounded-2xl bg-green-50 p-4 dark:bg-green-950/20">
               <CheckCircle2
@@ -599,7 +597,6 @@ const filteredRequests =
             </div>
           )}
 
-          {/* RATE MECHANIC */}
           {request.status === "completed" && !request.rating && (
             <button
               type="button"
@@ -615,7 +612,6 @@ const filteredRequests =
             </button>
           )}
 
-          {/* REQUEST TIME */}
           <p className="mt-5 text-xs text-[var(--veyra-muted)]">
             Requested{" "}
             {request.createdAt
@@ -668,8 +664,11 @@ const filteredRequests =
 
   return (
     <section className="mx-auto max-w-4xl">
+      <NotificationToast
+        notification={notification}
+        onClose={() => setNotification(null)}
+      />
 
-      {/* HEADER */}
       <div className="mb-7 flex items-center justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--veyra-muted)]">
@@ -699,7 +698,6 @@ const filteredRequests =
         </button>
       </div>
 
-            {/* REQUEST FILTERS */}
       <div className="mb-6">
         <div className="mb-4 flex items-end justify-between gap-4">
           <div>
@@ -717,7 +715,6 @@ const filteredRequests =
           </div>
         </div>
 
-        {/* FILTER TABS */}
         <div className="overflow-x-auto">
           <div className="flex min-w-max gap-2 pb-2">
             {requestFilters.map((filter) => (
@@ -748,15 +745,12 @@ const filteredRequests =
         </div>
       </div>
 
-      {/* REQUEST LIST */}
       {filteredRequests.length > 0 ? (
         <div className="space-y-5">
           {filteredRequests.map((request) =>
             renderRequestCard(
               request,
-              !["completed", "rejected", "cancelled"].includes(
-                request.status,
-              ),
+              !["completed", "rejected", "cancelled"].includes(request.status),
             ),
           )}
         </div>
@@ -767,7 +761,11 @@ const filteredRequests =
           </div>
 
           <h3 className="mt-4 text-lg font-black text-[var(--veyra-text)]">
-            No {requestFilter === "all" ? "" : statusLabels[requestFilter]?.toLowerCase()} requests
+            No{" "}
+            {requestFilter === "all"
+              ? ""
+              : statusLabels[requestFilter]?.toLowerCase()}{" "}
+            requests
           </h3>
 
           <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--veyra-text-secondary)]">
@@ -779,171 +777,160 @@ const filteredRequests =
           </p>
         </div>
       )}
-{/* REQUEST DETAILS MODAL */}
-{selectedRequest && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-    <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[28px] bg-[var(--veyra-surface)] shadow-2xl">
 
-      {/* HEADER */}
-      <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--veyra-border)] bg-[var(--veyra-surface)] p-5 sm:p-6">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--veyra-muted)]">
-            Request Details
-          </p>
+      {selectedRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[28px] bg-[var(--veyra-surface)] shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-[var(--veyra-border)] bg-[var(--veyra-surface)] p-5 sm:p-6">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--veyra-muted)]">
+                  Request Details
+                </p>
 
-          <h3 className="mt-1 text-xl font-black text-[var(--veyra-text)]">
-            {selectedRequest.service?.name || "Roadside Assistance"}
-          </h3>
+                <h3 className="mt-1 text-xl font-black text-[var(--veyra-text)]">
+                  {selectedRequest.service?.name || "Roadside Assistance"}
+                </h3>
 
-          <p className="mt-1 text-xs text-[var(--veyra-muted)]">
-            {selectedRequest.createdAt
-              ? new Date(selectedRequest.createdAt).toLocaleString()
-              : "Recently"}
-          </p>
+                <p className="mt-1 text-xs text-[var(--veyra-muted)]">
+                  {selectedRequest.createdAt
+                    ? new Date(selectedRequest.createdAt).toLocaleString()
+                    : "Recently"}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedRequest(null)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--veyra-surface-soft)] text-xl text-[var(--veyra-muted)] transition hover:text-[var(--veyra-text)]"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-4 p-5 sm:p-6">
+              <div className="flex items-center justify-between rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
+                    Status
+                  </p>
+
+                  <p className="mt-1 font-black text-[var(--veyra-text)]">
+                    {statusLabels[selectedRequest.status] ||
+                      selectedRequest.status}
+                  </p>
+                </div>
+
+                <span
+                  className={`rounded-full px-3 py-1.5 text-xs font-bold ${getStatusColor(
+                    selectedRequest.status,
+                  )}`}
+                >
+                  {statusLabels[selectedRequest.status] ||
+                    selectedRequest.status}
+                </span>
+              </div>
+
+              <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
+                  Mechanic
+                </p>
+
+                <p className="mt-2 font-black text-[var(--veyra-text)]">
+                  {selectedRequest.mechanic?.businessName || "Mechanic"}
+                </p>
+
+                {selectedRequest.mechanic?.experience !== undefined && (
+                  <p className="mt-1 text-xs text-[var(--veyra-text-secondary)]">
+                    {selectedRequest.mechanic.experience} years experience
+                  </p>
+                )}
+
+                {selectedRequest.mechanic?.phone && (
+                  <a
+                    href={`tel:${selectedRequest.mechanic.phone}`}
+                    className="mt-3 inline-flex rounded-xl bg-[var(--veyra-lime)] px-3 py-2 text-xs font-black text-[var(--veyra-ink)]"
+                  >
+                    Call Mechanic
+                  </a>
+                )}
+              </div>
+
+              {selectedRequest.vehicle && (
+                <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
+                    Vehicle
+                  </p>
+
+                  <p className="mt-2 font-black text-[var(--veyra-text)]">
+                    {selectedRequest.vehicle.make}{" "}
+                    {selectedRequest.vehicle.model}
+                  </p>
+
+                  <p className="mt-1 text-sm font-semibold text-[var(--veyra-text-secondary)]">
+                    {selectedRequest.vehicle.registrationNumber}
+                  </p>
+
+                  <p className="mt-1 text-xs capitalize text-[var(--veyra-muted)]">
+                    {selectedRequest.vehicle.vehicleType} •{" "}
+                    {selectedRequest.vehicle.fuelType}
+                    {selectedRequest.vehicle.color
+                      ? ` • ${selectedRequest.vehicle.color}`
+                      : ""}
+                  </p>
+                </div>
+              )}
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
+                    Estimated Price
+                  </p>
+
+                  <p className="mt-2 text-xl font-black text-[var(--veyra-text)]">
+                    ₹{selectedRequest.estimatedPrice || 0}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
+                    Estimated Duration
+                  </p>
+
+                  <p className="mt-2 font-black text-[var(--veyra-text)]">
+                    {selectedRequest.service?.estimatedDuration
+                      ? `~${selectedRequest.service.estimatedDuration} min`
+                      : "Not available"}
+                  </p>
+                </div>
+              </div>
+
+              {selectedRequest.notes && (
+                <div className="rounded-2xl border border-[var(--veyra-border)] p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
+                    Your Notes
+                  </p>
+
+                  <p className="mt-2 text-sm leading-6 text-[var(--veyra-text-secondary)]">
+                    {selectedRequest.notes}
+                  </p>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setSelectedRequest(null)}
+                className="w-full rounded-2xl border border-[var(--veyra-border)] px-4 py-3 text-sm font-black text-[var(--veyra-text)] transition hover:bg-[var(--veyra-surface-soft)]"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
+      )}
 
-        <button
-          type="button"
-          onClick={() => setSelectedRequest(null)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--veyra-surface-soft)] text-xl text-[var(--veyra-muted)] transition hover:text-[var(--veyra-text)]"
-        >
-          ×
-        </button>
-      </div>
-
-      {/* BODY */}
-      <div className="space-y-4 p-5 sm:p-6">
-
-        {/* STATUS */}
-        <div className="flex items-center justify-between rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
-              Status
-            </p>
-
-            <p className="mt-1 font-black text-[var(--veyra-text)]">
-              {statusLabels[selectedRequest.status] ||
-                selectedRequest.status}
-            </p>
-          </div>
-
-          <span
-            className={`rounded-full px-3 py-1.5 text-xs font-bold ${getStatusColor(
-              selectedRequest.status,
-            )}`}
-          >
-            {statusLabels[selectedRequest.status] ||
-              selectedRequest.status}
-          </span>
-        </div>
-
-        {/* MECHANIC */}
-        <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
-            Mechanic
-          </p>
-
-          <p className="mt-2 font-black text-[var(--veyra-text)]">
-            {selectedRequest.mechanic?.businessName || "Mechanic"}
-          </p>
-
-          {selectedRequest.mechanic?.experience !== undefined && (
-            <p className="mt-1 text-xs text-[var(--veyra-text-secondary)]">
-              {selectedRequest.mechanic.experience} years experience
-            </p>
-          )}
-
-          {selectedRequest.mechanic?.phone && (
-            <a
-              href={`tel:${selectedRequest.mechanic.phone}`}
-              className="mt-3 inline-flex rounded-xl bg-[var(--veyra-lime)] px-3 py-2 text-xs font-black text-[var(--veyra-ink)]"
-            >
-              Call Mechanic
-            </a>
-          )}
-        </div>
-
-        {/* VEHICLE */}
-        {selectedRequest.vehicle && (
-          <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
-              Vehicle
-            </p>
-
-            <p className="mt-2 font-black text-[var(--veyra-text)]">
-              {selectedRequest.vehicle.make}{" "}
-              {selectedRequest.vehicle.model}
-            </p>
-
-            <p className="mt-1 text-sm font-semibold text-[var(--veyra-text-secondary)]">
-              {selectedRequest.vehicle.registrationNumber}
-            </p>
-
-            <p className="mt-1 text-xs capitalize text-[var(--veyra-muted)]">
-              {selectedRequest.vehicle.vehicleType} •{" "}
-              {selectedRequest.vehicle.fuelType}
-              {selectedRequest.vehicle.color
-                ? ` • ${selectedRequest.vehicle.color}`
-                : ""}
-            </p>
-          </div>
-        )}
-
-        {/* SERVICE */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
-              Estimated Price
-            </p>
-
-            <p className="mt-2 text-xl font-black text-[var(--veyra-text)]">
-              ₹{selectedRequest.estimatedPrice || 0}
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-[var(--veyra-surface-soft)] p-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
-              Estimated Duration
-            </p>
-
-            <p className="mt-2 font-black text-[var(--veyra-text)]">
-              {selectedRequest.service?.estimatedDuration
-                ? `~${selectedRequest.service.estimatedDuration} min`
-                : "Not available"}
-            </p>
-          </div>
-        </div>
-
-        {/* NOTES */}
-        {selectedRequest.notes && (
-          <div className="rounded-2xl border border-[var(--veyra-border)] p-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
-              Your Notes
-            </p>
-
-            <p className="mt-2 text-sm leading-6 text-[var(--veyra-text-secondary)]">
-              {selectedRequest.notes}
-            </p>
-          </div>
-        )}
-
-        {/* CLOSE */}
-        <button
-          type="button"
-          onClick={() => setSelectedRequest(null)}
-          className="w-full rounded-2xl border border-[var(--veyra-border)] px-4 py-3 text-sm font-black text-[var(--veyra-text)] transition hover:bg-[var(--veyra-surface-soft)]"
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-      {/* RATING MODAL */}
       {ratingRequest && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
           <div className="w-full max-w-md rounded-3xl bg-[var(--veyra-surface)] p-6 shadow-2xl">
-            {/* HEADER */}
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-[var(--veyra-muted)]">
@@ -973,7 +960,6 @@ const filteredRequests =
               </button>
             </div>
 
-            {/* STARS */}
             <div className="mt-6">
               <p className="mb-3 text-sm font-bold text-[var(--veyra-text)]">
                 How was your experience?
@@ -1007,7 +993,6 @@ const filteredRequests =
               )}
             </div>
 
-            {/* REVIEW */}
             <div className="mt-6">
               <label className="text-sm font-bold text-[var(--veyra-text)]">
                 Review{" "}
@@ -1030,14 +1015,12 @@ const filteredRequests =
               </p>
             </div>
 
-            {/* MESSAGE */}
             {ratingMessage && (
               <div className="mt-4 rounded-xl bg-[var(--veyra-surface-soft)] p-3 text-sm text-[var(--veyra-text)]">
                 {ratingMessage}
               </div>
             )}
 
-            {/* SUBMIT */}
             <button
               type="button"
               onClick={submitRating}

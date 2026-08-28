@@ -13,6 +13,11 @@ export const registerUser = async (req, res) => {
       });
     }
 
+    const allowedRoles = ["user", "mechanic"];
+    const selectedRole = allowedRoles.includes(role)
+      ? role
+      : "user";
+
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
@@ -29,7 +34,7 @@ export const registerUser = async (req, res) => {
       email,
       phone,
       password: hashedPassword,
-      role: "user",
+      role: selectedRole,
     });
 
     const token = generateToken(user._id);
@@ -68,6 +73,15 @@ export const loginUser = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
+
+    console.log("LOGIN EMAIL:", email);
+console.log("USER FOUND:", !!user);
+
+if (user) {
+  console.log("USER EMAIL IN DB:", user.email);
+  console.log("USER ROLE:", user.role);
+  console.log("PASSWORD HASH EXISTS:", !!user.password);
+}
 
     if (!user) {
       return res.status(401).json({

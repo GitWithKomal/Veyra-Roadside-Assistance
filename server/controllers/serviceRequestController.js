@@ -1,6 +1,7 @@
 import ServiceRequest from "../models/ServiceRequest.js";
 import Mechanic from "../models/Mechanic.js";
 import Service from "../models/Service.js";
+import sendNotification from "../services/notificationService.js";
 
 export const createServiceRequest = async (req, res) => {
   try {
@@ -74,6 +75,19 @@ export const createServiceRequest = async (req, res) => {
       console.log(
         `New service request sent to mechanic room: user:${mechanic.user}`,
       );
+    }
+
+    if (io) {
+      sendNotification({
+        io,
+        userId: mechanic.user,
+        title: "New Service Request",
+        message: "A customer has requested roadside assistance.",
+        type: "request",
+        data: {
+          requestId: request._id,
+        },
+      });
     }
 
     res.status(201).json({
@@ -203,6 +217,33 @@ export const acceptServiceRequest = async (req, res) => {
         "serviceRequestUpdated",
         populatedRequest,
       );
+
+      if (io) {
+        sendNotification({
+          io,
+          userId: request.customer,
+          title: "Request Accepted",
+          message:
+            "Your mechanic has accepted your roadside assistance request.",
+          type: "success",
+          data: {
+            requestId: request._id,
+            status: "accepted",
+          },
+        });
+      }
+
+      sendNotification({
+        io,
+        userId: request.customer,
+        title: "Mechanic accepted your request",
+        message: "Your mechanic has accepted the roadside assistance request.",
+        type: "success",
+        data: {
+          requestId: request._id,
+          status: "accepted",
+        },
+      });
     }
 
     res.status(200).json({
@@ -269,6 +310,20 @@ export const rejectServiceRequest = async (req, res) => {
         "serviceRequestUpdated",
         populatedRequest,
       );
+    }
+
+    if (io) {
+      sendNotification({
+        io,
+        userId: request.customer,
+        title: "Request Declined",
+        message: "Unfortunately, the mechanic could not accept your request.",
+        type: "error",
+        data: {
+          requestId: request._id,
+          status: "rejected",
+        },
+      });
     }
 
     res.status(200).json({
@@ -366,6 +421,50 @@ export const updateServiceRequestStatus = async (req, res) => {
       );
     }
 
+    if (io) {
+      const notifications = {
+        on_the_way: {
+          title: "Mechanic Is On The Way",
+          message: "Your mechanic is travelling to your location.",
+          type: "info",
+        },
+
+        arrived: {
+          title: "Mechanic Has Arrived",
+          message: "Your mechanic has reached your location.",
+          type: "success",
+        },
+
+        in_progress: {
+          title: "Service Started",
+          message: "Your mechanic is now working on your vehicle.",
+          type: "info",
+        },
+
+        completed: {
+          title: "Service Completed",
+          message: "Your roadside assistance service has been completed.",
+          type: "success",
+        },
+      };
+
+      const notification = notifications[status];
+
+      if (notification) {
+        sendNotification({
+          io,
+          userId: request.customer,
+          title: notification.title,
+          message: notification.message,
+          type: notification.type,
+          data: {
+            requestId: request._id,
+            status,
+          },
+        });
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: `Service request status updated to ${status}`,
@@ -384,7 +483,6 @@ export const rateMechanic = async (req, res) => {
   try {
     const { rating, review } = req.body;
 
-    // Validate rating
     const numericRating = Number(rating);
 
     if (
@@ -398,7 +496,6 @@ export const rateMechanic = async (req, res) => {
       });
     }
 
-    // Find request belonging to logged-in customer
     const request = await ServiceRequest.findOne({
       _id: req.params.id,
       customer: req.user._id,
@@ -411,7 +508,6 @@ export const rateMechanic = async (req, res) => {
       });
     }
 
-    // Rating allowed only after completion
     if (request.status !== "completed") {
       return res.status(400).json({
         success: false,
@@ -419,7 +515,6 @@ export const rateMechanic = async (req, res) => {
       });
     }
 
-    // Prevent multiple ratings
     if (request.rating) {
       return res.status(400).json({
         success: false,
@@ -427,20 +522,13 @@ export const rateMechanic = async (req, res) => {
       });
     }
 
-    // Save rating on service request
     request.rating = numericRating;
     request.review = review?.trim() || "";
 
     await request.save();
 
-    // --------------------------------------------------
-    // UPDATE MECHANIC AVERAGE RATING
-    // --------------------------------------------------
-
     const mechanicId = request.mechanic;
 
-    // Get all completed requests for this mechanic
-    // that have been rated
     const ratedRequests = await ServiceRequest.find({
       mechanic: mechanicId,
       status: "completed",
@@ -457,7 +545,6 @@ export const rateMechanic = async (req, res) => {
     const averageRating =
       totalRatings > 0 ? Number((totalRating / totalRatings).toFixed(1)) : 0;
 
-    // Update mechanic profile
     const mechanic = await Mechanic.findByIdAndUpdate(
       mechanicId,
       {
@@ -474,10 +561,6 @@ export const rateMechanic = async (req, res) => {
         message: "Mechanic profile not found",
       });
     }
-
-    // --------------------------------------------------
-    // RESPONSE
-    // --------------------------------------------------
 
     res.status(200).json({
       success: true,

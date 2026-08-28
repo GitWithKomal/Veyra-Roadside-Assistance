@@ -20,10 +20,20 @@ const seedAdmin = async () => {
     });
 
     if (existingAdmin) {
-      console.log("Admin already exists");
-      await mongoose.disconnect();
-      process.exit(0);
-    }
+  const hashedPassword = await bcrypt.hash("Admin@12345", 10);
+
+  existingAdmin.password = hashedPassword;
+  existingAdmin.role = "admin";
+  existingAdmin.isVerified = true;
+  existingAdmin.isActive = true;
+
+  await existingAdmin.save();
+
+  console.log("✅ Existing admin updated successfully");
+
+  await mongoose.disconnect();
+  process.exit(0);
+}
 
     const hashedPassword = await bcrypt.hash(
       "Admin@12345",

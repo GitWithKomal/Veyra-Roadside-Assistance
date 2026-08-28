@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { socket } from "../services/socket";
 
-const useCustomerSocket = (onRequestUpdate) => {
+const useCustomerSocket = (onRequestUpdate, onNotification) => {
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
 
@@ -13,41 +13,36 @@ const useCustomerSocket = (onRequestUpdate) => {
     const handleConnect = () => {
       console.log("🟢 Customer socket connected:", socket.id);
 
-      console.log(
-        "Joining customer room:",
-        `user:${user.id}`
-      );
+      console.log("Joining customer room:", `user:${user.id}`);
 
       socket.emit("join", user.id);
     };
 
     const handleDisconnect = (reason) => {
-      console.log(
-        "🔴 Customer socket disconnected:",
-        reason
-      );
+      console.log("🔴 Customer socket disconnected:", reason);
     };
 
     const handleConnectError = (error) => {
-      console.error(
-        "❌ Customer socket connection error:",
-        error.message
-      );
+      console.error("❌ Customer socket connection error:", error.message);
     };
 
     const handleUpdate = (request) => {
-      console.log(
-        "🚨 Customer received service request update:",
-        request
-      );
+      console.log("🚨 Customer received service request update:", request);
 
       onRequestUpdate(request);
+    };
+
+    const handleNotification = (notification) => {
+      console.log("🔔 Customer received notification:", notification);
+
+      onNotification?.(notification);
     };
 
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
     socket.on("connect_error", handleConnectError);
     socket.on("serviceRequestUpdated", handleUpdate);
+    socket.on("notification", handleNotification);
 
     if (!socket.connected) {
       console.log("Connecting customer socket...");
@@ -61,6 +56,7 @@ const useCustomerSocket = (onRequestUpdate) => {
       socket.off("disconnect", handleDisconnect);
       socket.off("connect_error", handleConnectError);
       socket.off("serviceRequestUpdated", handleUpdate);
+      socket.off("notification", handleNotification);
     };
   }, [onRequestUpdate]);
 };

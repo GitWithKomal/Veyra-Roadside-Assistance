@@ -5,6 +5,7 @@ import {
   updateMechanicLocation,
   getNearbyMechanics,
   updateMechanicServices,
+  getMechanicRoute,
 } from "../controllers/mechanicController.js";
 import protect from "../middleware/authMiddleware.js";
 
@@ -23,5 +24,7 @@ router.patch(
   protect,
   updateMechanicServices
 );
+
+router.get("/route", protect, getMechanicRoute);
 
 export default router;
