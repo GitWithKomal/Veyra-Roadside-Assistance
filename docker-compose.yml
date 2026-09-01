@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: ./server
+    container_name: veyra-backend
+    env_file:
+      - ./server/.env
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: ./client
+      args:
+        VITE_MAPPLS_API_KEY: ${VITE_MAPPLS_API_KEY}
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_SOCKET_URL: ${VITE_SOCKET_URL}
+    container_name: veyra-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
