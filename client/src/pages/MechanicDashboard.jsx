@@ -49,8 +49,7 @@ const MechanicDashboard = () => {
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (!user?.id) {
-      console.log("❌ No logged-in mechanic user for socket");
-      return;
+return;
     }
 
     if (!socket.connected) {
@@ -58,16 +57,12 @@ const MechanicDashboard = () => {
     }
 
     const handleConnect = () => {
-      console.log("🟢 Mechanic socket connected:", socket.id);
-      console.log("Joining mechanic room:", `user:${user.id}`);
 
       socket.emit("join", user.id);
     };
 
     const handleNewRequest = (request) => {
-      console.log("🆕 Mechanic received new service request:", request);
-
-      setRequests((prevRequests) => {
+setRequests((prevRequests) => {
         const alreadyExists = prevRequests.some(
           (existingRequest) => existingRequest._id === request._id,
         );
@@ -81,12 +76,7 @@ const MechanicDashboard = () => {
     };
 
     const handleRequestUpdate = (updatedRequest) => {
-      console.log(
-        "🔄 Mechanic received service request update:",
-        updatedRequest,
-      );
-
-      setRequests((prevRequests) =>
+setRequests((prevRequests) =>
         prevRequests.map((request) =>
           request._id === updatedRequest._id ? updatedRequest : request,
         ),
@@ -149,10 +139,7 @@ const MechanicDashboard = () => {
       if (!response.ok) {
         throw new Error(data.message || "Failed to update request");
       }
-
-      console.log("Request updated:", data);
-
-      setSuccessMessage(data.message);
+setSuccessMessage(data.message);
 
       await fetchRequests();
     } catch (error) {
@@ -667,3 +654,4 @@ const MechanicDashboard = () => {
 };
 
 export default MechanicDashboard;
+

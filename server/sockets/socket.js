@@ -9,16 +9,11 @@ const initializeSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id);
-
+    
     socket.on("join", (userId) => {
       if (!userId) return;
 
       socket.join(`user:${userId}`);
-
-      console.log(
-        `User ${userId} joined room user:${userId}`
-      );
     });
 
     socket.on("disconnect", () => {

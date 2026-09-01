@@ -53,9 +53,7 @@ const CustomerRequests = () => {
   const [notification, setNotification] = useState(null);
 
   const handleRequestUpdate = useCallback((updatedRequest) => {
-    console.log("CustomerRequests received real-time update:", updatedRequest);
-
-    setRequests((currentRequests) =>
+setRequests((currentRequests) =>
       currentRequests.map((request) =>
         request._id === updatedRequest._id ? updatedRequest : request,
       ),
@@ -1037,3 +1035,4 @@ const CustomerRequests = () => {
 };
 
 export default CustomerRequests;
+

@@ -51,14 +51,11 @@ function App() {
     }
 
     const joinUserRoom = () => {
-      console.log("🟢 App socket connected:", socket.id);
-      console.log("Joining user room:", `user:${user.id}`);
-
+    
       socket.emit("join", user.id);
     };
 
     const handleNotification = (notification) => {
-      console.log("🔔 Notification received in App:", notification);
 
       setNotifications((current) => [notification, ...current]);
     };
@@ -286,3 +283,4 @@ function App() {
 }
 
 export default App;
+

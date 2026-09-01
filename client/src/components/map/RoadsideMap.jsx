@@ -75,13 +75,7 @@ const RoadsideMap = ({ vehicles }) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-
-        console.log("Customer location:", {
-          latitude,
-          longitude,
-        });
-
-        setLocation({
+setLocation({
           latitude,
           longitude,
         });
@@ -102,8 +96,7 @@ const RoadsideMap = ({ vehicles }) => {
   }, []);
 
   useEffect(() => {
-    console.log("selectedVehicle changed:", selectedVehicle);
-  }, [selectedVehicle]);
+}, [selectedVehicle]);
 
   useEffect(() => {
     const loadObject = {
@@ -111,18 +104,11 @@ const RoadsideMap = ({ vehicles }) => {
       version: "3.0",
     };
 
-    console.log("Starting Mappls initialization");
-    console.log(
-      "Mappls API key exists:",
-      Boolean(import.meta.env.VITE_MAPPLS_API_KEY),
-    );
-
     mapplsClassObject.initialize(
       import.meta.env.VITE_MAPPLS_API_KEY,
       loadObject,
       () => {
-        console.log("Mappls initialize callback fired");
-        const map = mapplsClassObject.Map({
+const map = mapplsClassObject.Map({
           id: "roadside-map",
           properties: {
             center: [21.1458, 79.0882],
@@ -135,9 +121,7 @@ const RoadsideMap = ({ vehicles }) => {
         mapRef.current = map;
 
         map.on("load", () => {
-          console.log("Mappls map loaded successfully");
-
-          mapplsClassObject.setStyle("standard-hybrid");
+mapplsClassObject.setStyle("standard-hybrid");
 
           setIsMapLoaded(true);
         });
@@ -173,9 +157,7 @@ const RoadsideMap = ({ vehicles }) => {
       width: 35,
       height: 45,
     });
-
-    console.log("Customer marker added");
-  }, [isMapLoaded, location]);
+}, [isMapLoaded, location]);
 
   useEffect(() => {
     if (!location) {
@@ -220,10 +202,7 @@ const RoadsideMap = ({ vehicles }) => {
 
         if (isMounted) {
           const nearbyMechanics = data.mechanics || [];
-
-          console.log("Nearby mechanics updated:", nearbyMechanics);
-
-          setMechanics(nearbyMechanics);
+setMechanics(nearbyMechanics);
         }
       } catch (error) {
         console.error("Nearby mechanics error:", error);
@@ -287,14 +266,10 @@ const RoadsideMap = ({ vehicles }) => {
 
       mechanicMarkersRef.current.push(marker);
     });
-
-    console.log(`${mechanics.length} mechanic marker(s) added`);
-  }, [isMapLoaded, mechanics]);
+}, [isMapLoaded, mechanics]);
 
   const handleRequestUpdate = useCallback((request) => {
-    console.log("Customer received request update:", request);
-
-    setActiveRequest(request);
+setActiveRequest(request);
   }, []);
 
   useCustomerSocket(handleRequestUpdate);
@@ -357,13 +332,7 @@ const RoadsideMap = ({ vehicles }) => {
         throw new Error("Route geometry contains insufficient coordinates");
       }
 
-      console.log("Route coordinates:", coordinates.length);
-
-      console.log("Route distance:", route.distance, "meters");
-
-      console.log("Route duration:", route.duration, "seconds");
-
-      const map = mapRef.current;
+const map = mapRef.current;
 
       if (!map) {
         throw new Error("Map is not ready");
@@ -383,10 +352,7 @@ const RoadsideMap = ({ vehicles }) => {
         strokeOpacity: 0.9,
         strokeWeight: 5,
       });
-
-      console.log("✅ Driving route drawn");
-
-      setRouteInfo({
+setRouteInfo({
         distanceKm: Number((route.distance / 1000).toFixed(1)),
         durationMinutes: Math.max(1, Math.round(route.duration / 60)),
       });
@@ -428,10 +394,6 @@ const RoadsideMap = ({ vehicles }) => {
         return;
       }
 
-      console.log("Selected vehicle:", selectedVehicle);
-
-      console.log("Vehicle ID being sent:", selectedVehicle?._id);
-
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/service-requests`,
         {
@@ -452,9 +414,7 @@ const RoadsideMap = ({ vehicles }) => {
       );
 
       const data = await response.json();
-
-      console.log("SERVICE REQUEST RESPONSE:", JSON.stringify(data, null, 2));
-      if (!response.ok) {
+if (!response.ok) {
         throw new Error(data.message || "Failed to create service request");
       }
 
@@ -747,18 +707,6 @@ const RoadsideMap = ({ vehicles }) => {
                   setSelectedMechanic(mechanic);
                   setSelectedService(null);
                   setRequestMessage("");
-
-                  console.log("CUSTOMER LOCATION:", {
-                    latitude: location.latitude,
-                    longitude: location.longitude,
-                  });
-
-                  console.log("SELECTED MECHANIC:", {
-                    id: mechanic._id,
-                    businessName: mechanic.businessName,
-                    coordinates: mechanic.location?.coordinates,
-                  });
-
                   showMechanicRoute(mechanic);
                 }}
                 className="group rounded-[24px] border border-[var(--veyra-border)] bg-[var(--veyra-surface)] p-5 text-left shadow-[var(--veyra-shadow-soft)] transition duration-200 hover:-translate-y-1 hover:border-[var(--veyra-border-strong)] hover:shadow-xl"
@@ -1098,3 +1046,4 @@ const RoadsideMap = ({ vehicles }) => {
 };
 
 export default RoadsideMap;
+

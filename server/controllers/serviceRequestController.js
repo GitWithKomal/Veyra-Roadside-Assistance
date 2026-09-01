@@ -72,9 +72,6 @@ export const createServiceRequest = async (req, res) => {
         populatedRequest,
       );
 
-      console.log(
-        `New service request sent to mechanic room: user:${mechanic.user}`,
-      );
     }
 
     if (io) {

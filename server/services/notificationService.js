@@ -21,10 +21,6 @@ export const sendNotification = ({
   };
 
   io.to(`user:${userId}`).emit("notification", notification);
-
-  console.log(
-    `🔔 Notification sent to user:${userId} - ${title}`
-  );
 };
 
 export default sendNotification;

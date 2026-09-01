@@ -14,9 +14,7 @@ export const registerUser = async (req, res) => {
     }
 
     const allowedRoles = ["user", "mechanic"];
-    const selectedRole = allowedRoles.includes(role)
-      ? role
-      : "user";
+    const selectedRole = allowedRoles.includes(role) ? role : "user";
 
     const existingUser = await User.findOne({ email });
 
@@ -74,15 +72,6 @@ export const loginUser = async (req, res) => {
 
     const user = await User.findOne({ email });
 
-    console.log("LOGIN EMAIL:", email);
-console.log("USER FOUND:", !!user);
-
-if (user) {
-  console.log("USER EMAIL IN DB:", user.email);
-  console.log("USER ROLE:", user.role);
-  console.log("PASSWORD HASH EXISTS:", !!user.password);
-}
-
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -90,10 +79,7 @@ if (user) {
       });
     }
 
-    const isPasswordCorrect = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
     if (!isPasswordCorrect) {
       return res.status(401).json({

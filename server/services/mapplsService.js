@@ -43,11 +43,6 @@ const getDistanceAndETA = async (
 
     const data = await response.json();
 
-    console.log(
-      "Mappls Distance Matrix response:",
-      JSON.stringify(data, null, 2),
-    );
-
     if (!data.results || !data.results.distances || !data.results.durations) {
       throw new Error("Invalid response received from Mappls Distance Matrix");
     }
@@ -102,11 +97,6 @@ export const getDrivingRoute = async (
       `${start};${end}` +
       `?steps=true&geometries=geojson&access_token=${apiKey}`;
 
-    console.log("Mappls route request:", {
-      start,
-      end,
-    });
-
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -118,8 +108,6 @@ export const getDrivingRoute = async (
     }
 
     const data = await response.json();
-
-    console.log("Mappls Route response:", JSON.stringify(data, null, 2));
 
     if (!data.routes || !data.routes.length) {
       throw new Error("No route found");

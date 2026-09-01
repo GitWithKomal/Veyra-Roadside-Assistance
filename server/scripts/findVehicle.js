@@ -19,7 +19,6 @@ const findVehicle = async () => {
       console.log("Vehicle not found");
     } else {
       console.log("Vehicle found:");
-      console.log(vehicle);
     }
 
     await mongoose.disconnect();

@@ -322,3 +322,4 @@ const Register = ({ onBackToLogin }) => {
 };
 
 export default Register;
+

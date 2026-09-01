@@ -13,32 +13,25 @@ const seedAdmin = async () => {
 
     await mongoose.connect(process.env.MONGODB_URI);
 
-    console.log("MongoDB connected for admin seeding");
-
     const existingAdmin = await User.findOne({
       email: "admin@roadsideaaa.com",
     });
 
     if (existingAdmin) {
-  const hashedPassword = await bcrypt.hash("Admin@12345", 10);
+      const hashedPassword = await bcrypt.hash("Admin@12345", 10);
 
-  existingAdmin.password = hashedPassword;
-  existingAdmin.role = "admin";
-  existingAdmin.isVerified = true;
-  existingAdmin.isActive = true;
+      existingAdmin.password = hashedPassword;
+      existingAdmin.role = "admin";
+      existingAdmin.isVerified = true;
+      existingAdmin.isActive = true;
 
-  await existingAdmin.save();
+      await existingAdmin.save();
 
-  console.log("✅ Existing admin updated successfully");
+      await mongoose.disconnect();
+      process.exit(0);
+    }
 
-  await mongoose.disconnect();
-  process.exit(0);
-}
-
-    const hashedPassword = await bcrypt.hash(
-      "Admin@12345",
-      10
-    );
+    const hashedPassword = await bcrypt.hash("Admin@12345", 10);
 
     await User.create({
       name: "Roadside AAA Admin",
@@ -49,8 +42,6 @@ const seedAdmin = async () => {
       isVerified: true,
       isActive: true,
     });
-
-    console.log("Admin created successfully");
 
     await mongoose.disconnect();
     process.exit(0);

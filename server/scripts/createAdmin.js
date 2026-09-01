@@ -45,8 +45,6 @@ const createAdmin = async () => {
       role: admin.role,
     });
 
-    console.log("Temporary password:", password);
-
     await mongoose.disconnect();
   } catch (error) {
     console.error("Create admin error:", error.message);

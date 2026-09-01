@@ -49,15 +49,6 @@ const assignServices = async () => {
 
     await mechanic.save();
 
-    console.log("Test Auto Care updated successfully");
-    console.log({
-      mechanicId: mechanic._id,
-      businessName: mechanic.businessName,
-      servicesOffered: mechanic.servicesOffered,
-      pricing: mechanic.pricing,
-      isVerified: mechanic.isVerified,
-      isAvailable: mechanic.isAvailable,
-    });
   } catch (error) {
     console.error("Error:", error.message);
   } finally {

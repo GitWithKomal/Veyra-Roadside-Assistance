@@ -238,17 +238,6 @@ export const getNearbyMechanics = async (req, res) => {
       },
     );
 
-    console.log(
-      "Mechanics with distance/ETA:",
-      mechanicsWithDistance.map((mechanic) => ({
-        id: mechanic._id,
-        businessName: mechanic.businessName,
-        distanceKm: mechanic.distanceKm,
-        estimatedArrivalMinutes:
-          mechanic.estimatedArrivalMinutes,
-      })),
-    );
-
     res.status(200).json({
       success: true,
       count: mechanicsWithDistance.length,

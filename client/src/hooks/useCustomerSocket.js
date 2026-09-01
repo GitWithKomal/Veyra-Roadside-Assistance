@@ -6,36 +6,27 @@ const useCustomerSocket = (onRequestUpdate, onNotification) => {
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (!user?.id) {
-      console.log("❌ No logged-in user for socket");
-      return;
+return;
     }
 
     const handleConnect = () => {
-      console.log("🟢 Customer socket connected:", socket.id);
-
-      console.log("Joining customer room:", `user:${user.id}`);
 
       socket.emit("join", user.id);
     };
 
     const handleDisconnect = (reason) => {
-      console.log("🔴 Customer socket disconnected:", reason);
-    };
+};
 
     const handleConnectError = (error) => {
       console.error("❌ Customer socket connection error:", error.message);
     };
 
     const handleUpdate = (request) => {
-      console.log("🚨 Customer received service request update:", request);
-
-      onRequestUpdate(request);
+onRequestUpdate(request);
     };
 
     const handleNotification = (notification) => {
-      console.log("🔔 Customer received notification:", notification);
-
-      onNotification?.(notification);
+onNotification?.(notification);
     };
 
     socket.on("connect", handleConnect);
@@ -45,8 +36,7 @@ const useCustomerSocket = (onRequestUpdate, onNotification) => {
     socket.on("notification", handleNotification);
 
     if (!socket.connected) {
-      console.log("Connecting customer socket...");
-      socket.connect();
+socket.connect();
     } else {
       handleConnect();
     }
@@ -62,3 +52,4 @@ const useCustomerSocket = (onRequestUpdate, onNotification) => {
 };
 
 export default useCustomerSocket;
+
