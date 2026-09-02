@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: veyra-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: veyra-frontend
+  template:
+    metadata:
+      labels:
+        app: veyra-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: roadside-aaa-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80

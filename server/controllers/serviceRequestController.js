@@ -4,6 +4,8 @@ import Service from "../models/Service.js";
 import sendNotification from "../services/notificationService.js";
 
 export const createServiceRequest = async (req, res) => {
+
+  console.log("CREATE SERVICE REQUEST HIT");
   try {
     const { mechanicId, serviceId, vehicleId, latitude, longitude, notes } =
       req.body;
@@ -73,6 +75,8 @@ export const createServiceRequest = async (req, res) => {
       );
 
     }
+
+    console.log("ABOUT TO SEND NOTIFICATION:", mechanic.user);
 
     if (io) {
       sendNotification({

@@ -25,15 +25,15 @@ return;
 onRequestUpdate(request);
     };
 
-    const handleNotification = (notification) => {
-onNotification?.(notification);
-    };
+//     const handleNotification = (notification) => {
+// onNotification?.(notification);
+//     };
 
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
     socket.on("connect_error", handleConnectError);
     socket.on("serviceRequestUpdated", handleUpdate);
-    socket.on("notification", handleNotification);
+    // socket.on("notification", handleNotification);
 
     if (!socket.connected) {
 socket.connect();
@@ -46,7 +46,7 @@ socket.connect();
       socket.off("disconnect", handleDisconnect);
       socket.off("connect_error", handleConnectError);
       socket.off("serviceRequestUpdated", handleUpdate);
-      socket.off("notification", handleNotification);
+      // socket.off("notification", handleNotification);
     };
   }, [onRequestUpdate]);
 };

@@ -11,10 +11,13 @@ const initializeSocket = (server) => {
   io.on("connection", (socket) => {
     
     socket.on("join", (userId) => {
-      if (!userId) return;
+  console.log("JOIN:", userId, socket.id);
 
-      socket.join(`user:${userId}`);
-    });
+  if (!userId) return;
+
+  socket.join(`user:${userId}`);
+  console.log("ROOMS:", [...socket.rooms]);
+});
 
     socket.on("disconnect", () => {
       console.log("Socket disconnected:", socket.id);

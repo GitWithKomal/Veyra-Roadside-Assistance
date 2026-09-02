@@ -19,7 +19,7 @@ export const sendNotification = ({
     createdAt: new Date().toISOString(),
     read: false,
   };
-
+  console.log("NOTIFICATION SENT:", userId, title);
   io.to(`user:${userId}`).emit("notification", notification);
 };
 

@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: veyra-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: veyra-backend
+  template:
+    metadata:
+      labels:
+        app: veyra-backend
+    spec:
+      containers:
+        - name: backend
+          image: roadside-aaa-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - secretRef:
+                name: veyra-backend-secret
