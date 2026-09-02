@@ -72,4 +72,9 @@ jobs:
         run: docker build -t veyra-backend ./server
 
       - name: Build frontend Docker image
-        run: docker build -t veyra-frontend ./client
+        run: |
+          docker build \
+          --build-arg VITE_MAPPLS_API_KEY=dummy-key-for-ci \
+          --build-arg VITE_API_URL=https://veyra-backend-reey.onrender.com/api \
+          --build-arg VITE_SOCKET_URL=https://veyra-backend-reey.onrender.com \
+          -t veyra-frontend ./client
