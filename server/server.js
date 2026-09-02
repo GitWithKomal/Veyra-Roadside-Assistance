@@ -16,6 +16,6 @@ const io = initializeSocket(server);
 
 app.set("io", io);
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Veyra server running on port ${PORT}`);
 });
