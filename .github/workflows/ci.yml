@@ -61,20 +61,38 @@ jobs:
         run: npm test
 
   docker:
-    name: Docker Build
+    name: Docker Build & Push
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build backend Docker image
-        run: docker build -t veyra-backend ./server
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build frontend Docker image
-        run: |
-          docker build \
-          --build-arg VITE_MAPPLS_API_KEY=dummy-key-for-ci \
-          --build-arg VITE_API_URL=https://veyra-backend-reey.onrender.com/api \
-          --build-arg VITE_SOCKET_URL=https://veyra-backend-reey.onrender.com \
-          -t veyra-frontend ./client
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./server
+          push: true
+          tags: ghcr.io/gitwithkomal/veyra-backend:latest
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./client
+          push: true
+          build-args: |
+            VITE_MAPPLS_API_KEY=dummy-key-for-ci
+            VITE_API_URL=https://veyra-backend-reey.onrender.com/api
+            VITE_SOCKET_URL=https://veyra-backend-reey.onrender.com
+          tags: ghcr.io/gitwithkomal/veyra-frontend:latest
