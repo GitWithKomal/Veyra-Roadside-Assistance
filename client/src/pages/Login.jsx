@@ -98,7 +98,7 @@ const Login = () => {
 
       <main className="flex min-h-[calc(100vh-88px)] items-center justify-center px-4 pb-12">
         <div className="grid w-full max-w-5xl overflow-hidden rounded-[32px] border border-[var(--veyra-border)] bg-[var(--veyra-surface)] shadow-[var(--veyra-shadow)] lg:grid-cols-2">
-          <section className="relative hidden overflow-hidden bg-[var(--veyra-ink)] p-10 text-white lg:flex lg:flex-col lg:justify-between">
+          <section className="relative hidden overflow-hidden bg-[#111411] p-10 text-white lg:flex lg:flex-col lg:justify-between">
             <div className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[var(--veyra-lime)] opacity-15 blur-3xl" />
 
             <div className="relative">
@@ -235,7 +235,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--veyra-ink)] px-5 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[var(--veyra-lime)] dark:text-[var(--veyra-ink)]"
+                  className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--veyra-ink)] px-5 py-3.5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[var(--veyra-lime)] dark:text-[#111411]"
                 >
                   {loading ? "Signing in..." : "Continue"}
 

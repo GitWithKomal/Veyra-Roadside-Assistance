@@ -61,8 +61,7 @@ const NotificationBell = () => {
 
       {/* DROPDOWN */}
       {isOpen && (
-        <div className="absolute right-0 top-12 z-50 w-80 overflow-hidden rounded-2xl border border-[var(--veyra-border)] bg-[var(--veyra-surface)] shadow-xl">
-          {/* HEADER */}
+        <div className="absolute right-0 top-12 z-50 w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-2xl border border-[var(--veyra-border)] bg-[var(--veyra-surface)] shadow-xl">
           <div className="flex items-center justify-between border-b border-[var(--veyra-border)] px-4 py-3">
             <div>
               <h3 className="text-sm font-black">

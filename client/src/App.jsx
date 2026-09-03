@@ -128,7 +128,7 @@ function App() {
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 top-12 z-50 w-80 overflow-hidden rounded-2xl border border-[var(--veyra-border)] bg-[var(--veyra-surface)] shadow-xl">
+                <div className="fixed right-4 top-20 z-50 w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-2xl border border-[var(--veyra-border)] bg-[var(--veyra-surface)] shadow-xl sm:absolute sm:right-0 sm:top-12 sm:w-80">
                   <div className="flex items-center justify-between border-b border-[var(--veyra-border)] p-4">
                     <div>
                       <h3 className="font-black text-[var(--veyra-text)]">

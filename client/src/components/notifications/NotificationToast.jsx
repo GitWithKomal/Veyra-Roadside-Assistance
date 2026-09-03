@@ -1,4 +1,10 @@
-import { CheckCircle2, Navigation, Wrench, MapPin, XCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  Navigation,
+  Wrench,
+  MapPin,
+  XCircle,
+} from "lucide-react";
 
 const NotificationToast = ({ notification, onClose }) => {
   if (!notification) return null;
@@ -46,7 +52,7 @@ const NotificationToast = ({ notification, onClose }) => {
   if (!current) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 z-[100] w-[calc(100%-2rem)] max-w-sm animate-[slideIn_.3s_ease-out]">
+    <div className="fixed bottom-5 right-5 z-[100] w-[calc(100vw-2rem)] max-w-sm animate-[slideIn_.3s_ease-out]">
       <div className="rounded-2xl border border-[var(--veyra-border)] bg-[var(--veyra-surface)] p-4 shadow-2xl">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--veyra-lime)] text-[var(--veyra-ink)]">
