@@ -37,7 +37,9 @@ export const registerUser = async (req, res) => {
     });
 
     if (selectedRole === "mechanic") {
-      await Mechanic.create({
+      console.log("🔧 Creating mechanic profile for user:", user._id);
+
+      const mechanic = await Mechanic.create({
         user: user._id,
         businessName: `${name}'s Auto Care`,
         description: "Roadside assistance mechanic",
@@ -45,6 +47,8 @@ export const registerUser = async (req, res) => {
         servicesOffered: [],
         pricing: [],
       });
+
+      console.log("✅ Mechanic profile created:", mechanic._id);
     }
 
     const token = generateToken(user._id);
