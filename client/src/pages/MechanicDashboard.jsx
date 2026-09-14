@@ -49,7 +49,7 @@ const MechanicDashboard = () => {
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (!user?.id) {
-return;
+      return;
     }
 
     if (!socket.connected) {
@@ -57,12 +57,11 @@ return;
     }
 
     const handleConnect = () => {
-
       socket.emit("join", user.id);
     };
 
     const handleNewRequest = (request) => {
-setRequests((prevRequests) => {
+      setRequests((prevRequests) => {
         const alreadyExists = prevRequests.some(
           (existingRequest) => existingRequest._id === request._id,
         );
@@ -76,7 +75,7 @@ setRequests((prevRequests) => {
     };
 
     const handleRequestUpdate = (updatedRequest) => {
-setRequests((prevRequests) =>
+      setRequests((prevRequests) =>
         prevRequests.map((request) =>
           request._id === updatedRequest._id ? updatedRequest : request,
         ),
@@ -139,7 +138,7 @@ setRequests((prevRequests) =>
       if (!response.ok) {
         throw new Error(data.message || "Failed to update request");
       }
-setSuccessMessage(data.message);
+      setSuccessMessage(data.message);
 
       await fetchRequests();
     } catch (error) {
@@ -654,4 +653,3 @@ setSuccessMessage(data.message);
 };
 
 export default MechanicDashboard;
-

@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
+import Mechanic from "../models/Mechanic.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -34,6 +35,17 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
       role: selectedRole,
     });
+
+    if (selectedRole === "mechanic") {
+      await Mechanic.create({
+        user: user._id,
+        businessName: `${name}'s Auto Care`,
+        description: "Roadside assistance mechanic",
+        experience: 0,
+        servicesOffered: [],
+        pricing: [],
+      });
+    }
 
     const token = generateToken(user._id);
 
