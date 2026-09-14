@@ -5,6 +5,7 @@ import Mechanic from "../models/Mechanic.js";
 
 export const registerUser = async (req, res) => {
   try {
+    console.log("🔥 REGISTER CODE VERSION: MECHANIC-FIX-2026");
     const { name, email, phone, password, role } = req.body;
 
     if (!name || !email || !phone || !password) {
