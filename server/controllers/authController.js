@@ -50,7 +50,11 @@ export const registerUser = async (req, res) => {
         isVerified: true,
       });
 
-      console.log("✅ Mechanic profile created:", mechanic._id);
+      console.log("✅ Mechanic profile created:", {
+        id: mechanic._id,
+        businessName: mechanic.businessName,
+        isVerified: mechanic.isVerified,
+      });
     }
 
     const token = generateToken(user._id);
