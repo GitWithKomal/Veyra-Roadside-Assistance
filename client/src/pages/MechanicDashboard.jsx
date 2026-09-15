@@ -10,6 +10,10 @@ const MechanicDashboard = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [requestFilter, setRequestFilter] = useState("all");
+  const [availableServices, setAvailableServices] = useState([]);
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [servicesLoading, setServicesLoading] = useState(true);
+  const [servicesSaving, setServicesSaving] = useState(false);
 
   const fetchRequests = async () => {
     try {
@@ -43,8 +47,118 @@ const MechanicDashboard = () => {
     }
   };
 
+  const fetchServices = async () => {
+    try {
+      setServicesLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/services`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch services");
+      }
+
+      setAvailableServices(data.services || []);
+    } catch (error) {
+      console.error("Fetch services error:", error);
+      setError(error.message || "Unable to load services.");
+    } finally {
+      setServicesLoading(false);
+    }
+  };
+
+  const fetchMechanicProfile = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      return;
+    }
+
+    const response = await fetch(`${API_URL}/mechanics/profile`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to fetch mechanic profile",
+      );
+    }
+
+    const serviceIds =
+      data.mechanic?.servicesOffered?.map((service) =>
+        String(service._id || service),
+      ) || [];
+
+    setSelectedServices(serviceIds);
+  } catch (error) {
+    console.error("Fetch mechanic profile error:", error);
+  }
+};
+
+const saveMechanicServices = async () => {
+  try {
+    setServicesSaving(true);
+    setSuccessMessage("");
+    setError("");
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      throw new Error("Please login again.");
+    }
+
+    const response = await fetch(`${API_URL}/mechanics/services`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        services: selectedServices,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "Failed to update services",
+      );
+    }
+
+    setSuccessMessage("Services updated successfully.");
+  } catch (error) {
+    console.error("Save mechanic services error:", error);
+    setError(error.message || "Unable to update services.");
+  } finally {
+    setServicesSaving(false);
+  }
+};
+
   useEffect(() => {
     fetchRequests();
+    fetchServices();
+    fetchMechanicProfile();
 
     const user = JSON.parse(localStorage.getItem("user"));
 
@@ -95,6 +209,62 @@ const MechanicDashboard = () => {
       socket.off("newServiceRequest", handleNewRequest);
       socket.off("serviceRequestUpdated", handleRequestUpdate);
     };
+  }, []);
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by this browser.");
+      return;
+    }
+
+    const updateMechanicLocation = async (position) => {
+      try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          console.error("No authentication token found.");
+          return;
+        }
+
+        const { latitude, longitude } = position.coords;
+
+        const response = await fetch(`${API_URL}/mechanics/location`, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            latitude,
+            longitude,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to update mechanic location");
+        }
+
+        console.log("📍 Mechanic location updated:", data.location);
+      } catch (error) {
+        console.error("Mechanic location update error:", error);
+      }
+    };
+
+    const handleLocationError = (error) => {
+      console.error("Mechanic location error:", error);
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      updateMechanicLocation,
+      handleLocationError,
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
   }, []);
 
   const updateRequestStatus = async (requestId, action, status = null) => {
@@ -377,6 +547,96 @@ const MechanicDashboard = () => {
             {error}
           </div>
         )}
+
+        <div className="mb-7 rounded-[24px] border border-[var(--veyra-border)] bg-[var(--veyra-surface)] p-5 shadow-[var(--veyra-shadow-soft)] sm:p-6">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-wider text-[var(--veyra-text)]">
+                Services You Provide
+              </h2>
+
+              <p className="mt-1 text-xs text-[var(--veyra-muted)]">
+                Select the roadside assistance services you offer to customers.
+              </p>
+            </div>
+
+            <span className="text-xs font-semibold text-[var(--veyra-muted)]">
+              {selectedServices.length} selected
+            </span>
+          </div>
+
+          {servicesLoading ? (
+            <p className="mt-5 text-sm text-[var(--veyra-text-secondary)]">
+              Loading services...
+            </p>
+          ) : availableServices.length === 0 ? (
+            <p className="mt-5 text-sm text-[var(--veyra-muted)]">
+              No services are currently available.
+            </p>
+          ) : (
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {availableServices.map((service) => {
+                const isSelected = selectedServices.includes(
+                  String(service._id),
+                );
+
+                return (
+                  <button
+                    key={service._id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedServices((prev) =>
+                        isSelected
+                          ? prev.filter((id) => id !== String(service._id))
+                          : [...prev, String(service._id)],
+                      );
+                    }}
+                    className={`rounded-2xl border p-4 text-left transition ${
+                      isSelected
+                        ? "border-[var(--veyra-lime)] bg-[var(--veyra-lime-soft)]"
+                        : "border-[var(--veyra-border)] bg-[var(--veyra-surface-soft)] hover:border-[var(--veyra-border-strong)]"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-black text-[var(--veyra-text)]">
+                          {service.name}
+                        </p>
+
+                        <p className="mt-1 text-xs leading-5 text-[var(--veyra-muted)]">
+                          {service.description}
+                        </p>
+
+                        <p className="mt-2 text-xs font-bold text-[var(--veyra-text-secondary)]">
+                          ₹{service.basePrice} • {service.estimatedDuration} min
+                        </p>
+                      </div>
+
+                      <span
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black ${
+                          isSelected
+                            ? "bg-[var(--veyra-lime)] text-[var(--veyra-ink)]"
+                            : "border border-[var(--veyra-border)] text-transparent"
+                        }`}
+                      >
+                        ✓
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={saveMechanicServices}
+            disabled={false}
+            className="mt-5 w-full rounded-xl bg-[var(--veyra-lime)] px-5 py-3 text-sm font-black text-[var(--veyra-ink)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          >
+            {servicesSaving ? "Saving..." : "Save Services"}
+          </button>
+        </div>
 
         {!loading && !error && requests.length > 0 && (
           <div className="mb-7 rounded-[24px] border border-[var(--veyra-border)] bg-[var(--veyra-surface)] p-4 shadow-[var(--veyra-shadow-soft)] sm:p-5">

@@ -42,11 +42,12 @@ export const registerUser = async (req, res) => {
 
       const mechanic = await Mechanic.create({
         user: user._id,
-        businessName: `${name}'s Auto Care`,
+        businessName: `${name} Roadside Services`,
         description: "Roadside assistance mechanic",
         experience: 0,
         servicesOffered: [],
         pricing: [],
+        isVerified: true,
       });
 
       console.log("✅ Mechanic profile created:", mechanic._id);

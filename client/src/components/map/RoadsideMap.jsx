@@ -75,7 +75,7 @@ const RoadsideMap = ({ vehicles }) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-setLocation({
+        setLocation({
           latitude,
           longitude,
         });
@@ -95,8 +95,7 @@ setLocation({
     );
   }, []);
 
-  useEffect(() => {
-}, [selectedVehicle]);
+  useEffect(() => {}, [selectedVehicle]);
 
   useEffect(() => {
     const loadObject = {
@@ -108,7 +107,7 @@ setLocation({
       import.meta.env.VITE_MAPPLS_API_KEY,
       loadObject,
       () => {
-const map = mapplsClassObject.Map({
+        const map = mapplsClassObject.Map({
           id: "roadside-map",
           properties: {
             center: [21.1458, 79.0882],
@@ -121,7 +120,7 @@ const map = mapplsClassObject.Map({
         mapRef.current = map;
 
         map.on("load", () => {
-mapplsClassObject.setStyle("standard-hybrid");
+          mapplsClassObject.setStyle("standard-hybrid");
 
           setIsMapLoaded(true);
         });
@@ -157,7 +156,7 @@ mapplsClassObject.setStyle("standard-hybrid");
       width: 35,
       height: 45,
     });
-}, [isMapLoaded, location]);
+  }, [isMapLoaded, location]);
 
   useEffect(() => {
     if (!location) {
@@ -202,7 +201,7 @@ mapplsClassObject.setStyle("standard-hybrid");
 
         if (isMounted) {
           const nearbyMechanics = data.mechanics || [];
-setMechanics(nearbyMechanics);
+          setMechanics(nearbyMechanics);
         }
       } catch (error) {
         console.error("Nearby mechanics error:", error);
@@ -266,10 +265,10 @@ setMechanics(nearbyMechanics);
 
       mechanicMarkersRef.current.push(marker);
     });
-}, [isMapLoaded, mechanics]);
+  }, [isMapLoaded, mechanics]);
 
   const handleRequestUpdate = useCallback((request) => {
-setActiveRequest(request);
+    setActiveRequest(request);
   }, []);
 
   useCustomerSocket(handleRequestUpdate);
@@ -332,7 +331,7 @@ setActiveRequest(request);
         throw new Error("Route geometry contains insufficient coordinates");
       }
 
-const map = mapRef.current;
+      const map = mapRef.current;
 
       if (!map) {
         throw new Error("Map is not ready");
@@ -352,7 +351,7 @@ const map = mapRef.current;
         strokeOpacity: 0.9,
         strokeWeight: 5,
       });
-setRouteInfo({
+      setRouteInfo({
         distanceKm: Number((route.distance / 1000).toFixed(1)),
         durationMinutes: Math.max(1, Math.round(route.duration / 60)),
       });
@@ -414,7 +413,7 @@ setRouteInfo({
       );
 
       const data = await response.json();
-if (!response.ok) {
+      if (!response.ok) {
         throw new Error(data.message || "Failed to create service request");
       }
 
@@ -1046,4 +1045,3 @@ if (!response.ok) {
 };
 
 export default RoadsideMap;
-
